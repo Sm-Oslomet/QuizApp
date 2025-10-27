@@ -28,7 +28,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// ✅ Enable CORS *before* authorization
+// Enable CORS *before* authorization
 app.UseCors("AllowReactApp");
 
 app.UseHttpsRedirection();
@@ -36,4 +36,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+app.Run(); 

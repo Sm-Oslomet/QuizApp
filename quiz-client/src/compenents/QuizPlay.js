@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { quizService } from "../api/quizService";
 
 function QuizPlay() {
   const { id } = useParams();
@@ -104,7 +105,7 @@ function QuizPlay() {
     <div className="container py-5">
       <h2 className="text-center text-primary mb-4">{quiz.title}</h2>
 
-      {/* 🔸 Live score display */}
+      {/* Live score display */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <span className="fw-bold">
           Question {current + 1} / {quiz.questions.length}

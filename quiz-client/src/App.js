@@ -6,10 +6,11 @@ import CreateQuiz from "./compenents/CreateQuiz";
 import SelectQuiz from "./compenents/SelectQuiz";
 import QuizPlay from "./compenents/QuizPlay";
 import EditQuiz from "./compenents/EditQuiz";
-import "bootstrap/dist/css/bootstrap.min.css"; // ✅ import Bootstrap CSS
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import Footer from "./compenents/Footer";
 import Navbar from "./compenents/Navbar";
+
+import "bootstrap/dist/css/bootstrap.min.css"; 
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 
 function App() {

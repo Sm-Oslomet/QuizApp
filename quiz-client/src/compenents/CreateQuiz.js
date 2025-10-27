@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import { API_URL } from "../api";
+import { quizService } from "../api/quizService";
 
 function CreateQuiz() {
   const navigate = useNavigate();
@@ -57,19 +57,7 @@ function CreateQuiz() {
       questions,
     };
 
-  //   try {
-  //     const res = await fetch(API_URL, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify(newQuiz),
-  //     });
 
-  //     if (!res.ok) throw new Error("Failed to create quiz");
-  //     navigate("/select");
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert("Error saving quiz to the API.");
-  //   }
 
    const saved = JSON.parse(localStorage.getItem("quizzes") || "[]");
   localStorage.setItem("quizzes", JSON.stringify([...saved, newQuiz]));

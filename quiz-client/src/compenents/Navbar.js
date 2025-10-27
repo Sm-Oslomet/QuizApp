@@ -5,64 +5,54 @@ function Navbar() {
   const location = useLocation();
 
   return (
-    <nav
-      className="navbar navbar-expand-lg bg-transparent border-bottom"
-      style={{ backdropFilter: "blur(6px)" }}
-    >
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
       <div className="container">
-        {/* Logo / navn */}
-        <Link className="navbar-brand fw-bold text-primary" to="/">
+        {/* App name */}
+        <Link className="navbar-brand fw-bold" to="/">
           QuizApp
         </Link>
 
-        {/* Mobil-knapp */}
+        {/* Toggle for mobile */}
         <button
           className="navbar-toggler"
           type="button"
           data-bs-toggle="collapse"
           data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
         >
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* Navigasjonslenker */}
+        {/* Links */}
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto">
             <li className="nav-item">
               <Link
                 className={`nav-link ${
-                  location.pathname === "/" ? "active text-primary" : "text-dark"
+                  location.pathname === "/" ? "active text-warning" : ""
                 }`}
                 to="/"
               >
-                Hjem
+                Home
               </Link>
             </li>
             <li className="nav-item">
               <Link
                 className={`nav-link ${
-                  location.pathname === "/create"
-                    ? "active text-primary"
-                    : "text-dark"
+                  location.pathname === "/create" ? "active text-warning" : ""
                 }`}
                 to="/create"
               >
-                Lag Quiz
+                Create Quiz
               </Link>
             </li>
             <li className="nav-item">
               <Link
                 className={`nav-link ${
-                  location.pathname === "/select"
-                    ? "active text-primary"
-                    : "text-dark"
+                  location.pathname === "/select" ? "active text-warning" : ""
                 }`}
                 to="/select"
               >
-                Quizer
+                Select Quiz
               </Link>
             </li>
           </ul>
