@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { quizService } from "../api/quizService";
 
 function CreateQuiz() {
   const navigate = useNavigate();
@@ -11,100 +12,125 @@ function CreateQuiz() {
     options: ["", "", "", ""],
     correctAnswer: "",
   });
+  const [correctIndex, setCorrectIndex] = useState(null);
 
-  const handleOptionChange = (index, value) => {
-    const newOptions = [...currentQuestion.options];
-    newOptions[index] = value;
-    setCurrentQuestion({ ...currentQuestion, options: newOptions });
+  const handleOptionChange = (i, value) => {
+    const next = [...currentQuestion.options];
+    next[i] = value;
+    setCurrentQuestion((q) => ({
+      ...q,
+      options: next,
+      correctAnswer: correctIndex === i ? value : q.correctAnswer,
+    }));
   };
 
   const addQuestion = () => {
-    if (!currentQuestion.text || currentQuestion.options.some(o => !o) || !currentQuestion.correctAnswer) {
-      alert("Vennligst fyll ut alle felter før du legger til spørsmålet.");
+    if (
+      !currentQuestion.text.trim() ||
+      currentQuestion.options.some((o) => !o.trim()) ||
+      correctIndex === null
+    ) {
+      alert("Please fill in the question, all options, and select the correct answer.");
       return;
     }
-    setQuestions([...questions, currentQuestion]);
-    setCurrentQuestion({
-      text: "",
-      options: ["", "", "", ""],
-      correctAnswer: "",
-    });
+
+    const q = {
+      text: currentQuestion.text.trim(),
+      options: currentQuestion.options.map((o) => o.trim()),
+      correctAnswer: currentQuestion.options[correctIndex].trim(),
+    };
+
+    setQuestions((prev) => [...prev, q]);
+    setCurrentQuestion({ text: "", options: ["", "", "", ""], correctAnswer: "" });
+    setCorrectIndex(null);
   };
 
-  const finishQuiz = () => {
-    if (!title || questions.length === 0) {
-      alert("Fyll inn tittel og minst ett spørsmål.");
+  const finishQuiz = async () => {
+    if (!title.trim() || questions.length === 0) {
+      alert("Please enter a title and at least one question.");
       return;
     }
 
-    const newQuiz = { title, description, questions };
-    const saved = JSON.parse(localStorage.getItem("quizzes") || "[]");
-    localStorage.setItem("quizzes", JSON.stringify([...saved, newQuiz]));
+    const newQuiz = {
+      title: title.trim(),
+      description: description.trim(),
+      questions,
+    };
 
-    navigate("/select");
+
+
+   const saved = JSON.parse(localStorage.getItem("quizzes") || "[]");
+  localStorage.setItem("quizzes", JSON.stringify([...saved, newQuiz]));
+
+  alert("Quiz saved locally!");
+  navigate("/select");
   };
 
   return (
-    <div style={{ textAlign: "center", padding: "20px" }}>
-      <h2>Lag en ny quiz</h2>
+    <div className="container py-5">
+      <h2 className="text-center text-primary mb-4">Create a New Quiz</h2>
 
-      <input
-        type="text"
-        placeholder="Quiz tittel"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        style={{ padding: "10px", width: "300px", marginBottom: "10px" }}
-      />
-      <br />
-
-      <textarea
-        placeholder="Beskrivelse"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        style={{ padding: "10px", width: "300px", height: "80px" }}
-      />
-      <br />
-
-      <h3>Legg til spørsmål</h3>
-      <input
-        type="text"
-        placeholder="Skriv spørsmålet her"
-        value={currentQuestion.text}
-        onChange={(e) => setCurrentQuestion({ ...currentQuestion, text: e.target.value })}
-        style={{ padding: "10px", width: "300px", marginBottom: "10px" }}
-      />
-      <br />
-
-      {currentQuestion.options.map((opt, i) => (
-        <div key={i}>
-          <input
-            type="text"
-            placeholder={`Alternativ ${i + 1}`}
-            value={opt}
-            onChange={(e) => handleOptionChange(i, e.target.value)}
-            style={{ padding: "8px", width: "250px", margin: "5px" }}
+      <div className="card shadow-sm p-4 mb-4">
+        <div className="mb-3">
+          <label className="form-label fw-semibold">Title</label>
+          <input className="form-control" value={title} onChange={(e) => setTitle(e.target.value)} />
+        </div>
+        <div className="mb-3">
+          <label className="form-label fw-semibold">Description</label>
+          <textarea
+            className="form-control"
+            rows="3"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
           />
         </div>
-      ))}
+      </div>
 
-      <input
-        type="text"
-        placeholder="Riktig svar (skriv teksten)"
-        value={currentQuestion.correctAnswer}
-        onChange={(e) => setCurrentQuestion({ ...currentQuestion, correctAnswer: e.target.value })}
-        style={{ padding: "8px", width: "250px", margin: "10px" }}
-      />
-      <br />
+      <div className="card shadow-sm p-4">
+        <h5 className="mb-3">Add a Question</h5>
+        <input
+          className="form-control mb-3"
+          placeholder="Write the question..."
+          value={currentQuestion.text}
+          onChange={(e) => setCurrentQuestion({ ...currentQuestion, text: e.target.value })}
+        />
 
-      <button onClick={addQuestion} style={{ padding: "10px 20px", margin: "5px" }}>
-        ➕ Legg til spørsmål
-      </button>
+        <div className="row g-2">
+          {currentQuestion.options.map((opt, i) => (
+            <div className="col-sm-6" key={i}>
+              <div
+                className={`input-group ${correctIndex === i ? "border border-success rounded" : ""}`}
+              >
+                <div className="input-group-text">
+                  <input
+                    type="radio"
+                    checked={correctIndex === i}
+                    onChange={() => setCorrectIndex(i)}
+                    className="form-check-input mt-0"
+                  />
+                </div>
+                <input
+                  className="form-control"
+                  placeholder={`Option ${i + 1}`}
+                  value={opt}
+                  onChange={(e) => handleOptionChange(i, e.target.value)}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
 
-      <button onClick={finishQuiz} style={{ padding: "10px 20px", margin: "5px" }}>
-        ✅ Ferdig quiz
-      </button>
+        <div className="d-flex gap-2 mt-3">
+          <button className="btn btn-primary" onClick={addQuestion}>
+             Add Question
+          </button>
+          <button className="btn btn-success" onClick={finishQuiz}>
+            Save Quiz
+          </button>
+        </div>
+      </div>
 
-      <h4>Antall spørsmål: {questions.length}</h4>
+      <div className="text-muted mt-3">Questions: {questions.length}</div>
     </div>
   );
 }
