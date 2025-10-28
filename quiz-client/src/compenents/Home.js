@@ -6,8 +6,8 @@ function Home() {
 
   return (
     <div style={{ textAlign: "center", marginTop: "100px" }}>
-      <h1>Velkommen til Quiz App</h1>
-      <p>Velg et alternativ for å fortsette:</p>
+      <h1>Welcome to Quiz App</h1>
+      <p>Select an option to continue:</p>
 
       <div style={{ marginTop: "30px" }}>
         <button
@@ -19,7 +19,7 @@ function Home() {
             cursor: "pointer",
           }}
         >
-          ➕ Lag en ny quiz
+          Create a New Quiz
         </button>
 
         <button
@@ -31,7 +31,7 @@ function Home() {
             cursor: "pointer",
           }}
         >
-          Velg en eksisterende quiz
+          Choose an Existing Quiz
         </button>
       </div>
     </div>
