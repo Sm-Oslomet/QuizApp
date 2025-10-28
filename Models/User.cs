@@ -1,10 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
 
-namespace QuizApp.Models
+namespace QuizApp.Models;
+
+public class User : IdentityUser
 {
-    public class User
-    {
-      
-    }
+    // we inherit many needed fields from IdentityUser
+    public ICollection<UserAnswer> UserAnswers { get; set; } = new List<UserAnswer>();
 }
