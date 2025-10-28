@@ -89,7 +89,7 @@ function EditQuiz() {
     }));
   };
 
-  // 🔹 Slett spørsmål
+  // Slett spørsmål
   const removeQuestion = (index) => {
     setQuiz((prev) => ({
       ...prev,
@@ -97,7 +97,7 @@ function EditQuiz() {
     }));
   };
 
-  // 🔹 Lagre endringer
+  // Lagre endringer
   const handleSave = () => {
     if (!quiz.title.trim()) {
       alert("Please enter a title.");
