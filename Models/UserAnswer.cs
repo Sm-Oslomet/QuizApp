@@ -1,14 +1,18 @@
 namespace QuizApp.Models;
 
+
+// join table for Question and Answer
 public class UserAnswer
 {
-    public int AnsId { get; set; }
-    public int Score { get; set; }
-    public DateTime TakenAt { get; set; }
+    public int UserAnswerId { get; set; }
 
-    public string UserId { get; set; } = string.Empty;
-    public User User { get; set; } = null!;
-    public int QuizId { get; set; }
-    public Quiz Quiz { get; set; } = null!;
+    public int QuizAttemptId { get; set; }
+    public QuizAttempt QuizAttempt { get; set; } = null!;
+
+    public int QuestionId { get; set; }
+    public Question Question { get; set; } = null!;
+
+    public int AnswerId { get; set; }
+    public Answer Answer { get; set; } = null!;
 
 }
