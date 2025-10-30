@@ -1,7 +1,7 @@
 import $ from "jquery";
 
 const API_URL = "http://localhost:5000/api/quizzes";
-const USE_API = true; // Endre til true når du vil bruke server (API)
+const USE_API = false; // Endre til true når du vil bruke server (API)
 
 
 // API mode (AJAX)

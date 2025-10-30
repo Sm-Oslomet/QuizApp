@@ -30,7 +30,7 @@ function CreateQuiz() {
       currentQuestion.options.some((o) => !o.trim()) ||
       correctIndex === null
     ) {
-      alert("Please fill in the question, all options, and select the correct answer.");
+      alert("Please fill in the question , all options, and select the correct answer.");
       return;
     }
 

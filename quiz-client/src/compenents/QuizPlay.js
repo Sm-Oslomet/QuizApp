@@ -1,19 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { quizService } from "../api/quizService";
 
 function QuizPlay() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [quiz, setQuiz] = useState(null);
   const [current, setCurrent] = useState(0);
   const [score, setScore] = useState(0);
-  const [finished, setFinished] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [feedback, setFeedback] = useState("");
+  const [feedbackText, setFeedbackText] = useState("");
+  const [wasCorrect, setWasCorrect] = useState(null); // true / false / null
 
-  // Load quiz from localStorage
+  // last riktig quiz fra localStorage
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("quizzes") || "[]");
     const found = saved.find((q) => q.id === id);
@@ -25,87 +23,62 @@ function QuizPlay() {
     }
   }, [id, navigate]);
 
-  // 🔹 Handle answer click
-  const handleAnswer = (option) => {
-    const currentQuestion = quiz.questions[current];
-    setSelected(option);
-
-    if (option === currentQuestion.correctAnswer) {
-      setScore((prev) => prev + 1);
-      setFeedback("Correct!");
-    } else {
-      setFeedback(`Wrong! Correct answer: ${currentQuestion.correctAnswer}`);
-    }
-  };
-
-  // 🔹 Go to next question
-  const handleNext = () => {
-    setFeedback("");
-    setSelected(null);
-    if (current + 1 < quiz.questions.length) {
-      setCurrent((prev) => prev + 1);
-    } else {
-      setFinished(true);
-    }
-  };
-
-  if (!quiz) return <p className="text-center mt-5">Loading quiz...</p>;
-
-  // 🔹 Show result page
-  if (finished) {
-    const percentage = Math.round((score / quiz.questions.length) * 100);
-    return (
-      <div className="container py-5 text-center">
-        <h2 className="text-primary mb-4">{quiz.title}</h2>
-        <h4>
-          You got {score} / {quiz.questions.length} correct!
-        </h4>
-        <p>That’s {percentage}%</p>
-
-        <div className="progress my-3" style={{ height: "25px" }}>
-          <div
-            className={`progress-bar ${
-              percentage >= 70
-                ? "bg-success"
-                : percentage >= 40
-                ? "bg-warning"
-                : "bg-danger"
-            }`}
-            style={{ width: `${percentage}%` }}
-          >
-            {percentage}%
-          </div>
-        </div>
-
-        <button
-          className="btn btn-primary me-2"
-          onClick={() => {
-            setCurrent(0);
-            setScore(0);
-            setFinished(false);
-          }}
-        >
-           Restart Quiz
-        </button>
-
-        <button
-          className="btn btn-secondary"
-          onClick={() => navigate("/select")}
-        >
-          🔙 Back to Quizzes
-        </button>
-      </div>
-    );
+  if (!quiz) {
+    return <p className="text-center mt-5">Loading quiz...</p>;
   }
 
   const question = quiz.questions[current];
-  const livePercentage = Math.round((score / quiz.questions.length) * 100);
+  const livePercentage = Math.round(
+    (score / quiz.questions.length) * 100
+  );
+
+  // Når bruker klikker på et svar
+  const handleAnswer = (option) => {
+    if (selected) return; // ikke la bruker velge på nytt
+
+    setSelected(option);
+
+    if (option === question.correctAnswer) {
+      setScore((prev) => prev + 1);
+      setFeedbackText("✅ Correct!");
+      setWasCorrect(true);
+    } else {
+      setFeedbackText(
+        `❌ Wrong! Correct answer: ${question.correctAnswer}`
+      );
+      setWasCorrect(false);
+    }
+  };
+
+  // Neste spørsmål / eller ferdig
+  const handleNext = () => {
+    const lastIndex = quiz.questions.length - 1;
+
+    if (current < lastIndex) {
+      // gå til neste spørsmål
+      setCurrent((prev) => prev + 1);
+      setSelected(null);
+      setFeedbackText("");
+      setWasCorrect(null);
+    } else {
+      // ferdig -> send til resultatside
+      navigate(`/result/${quiz.id}`, {
+        state: {
+          title: quiz.title,
+          totalQuestions: quiz.questions.length,
+          score: score,
+        },
+      });
+    }
+  };
 
   return (
     <div className="container py-5">
-      <h2 className="text-center text-primary mb-4">{quiz.title}</h2>
+      <h2 className="text-center text-primary mb-4">
+        {quiz.title}
+      </h2>
 
-      {/* Live score display */}
+      {/* topp-linje med fremdrift og score */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <span className="fw-bold">
           Question {current + 1} / {quiz.questions.length}
@@ -120,18 +93,19 @@ function QuizPlay() {
 
         <div className="list-group">
           {question.options.map((option, i) => {
-            let buttonClass = "list-group-item list-group-item-action";
+            let buttonClass =
+              "list-group-item list-group-item-action";
 
             if (selected) {
               if (option === question.correctAnswer) {
-                buttonClass += " list-group-item-success"; // green
-              } else if (
-                option === selected &&
-                option !== question.correctAnswer
-              ) {
-                buttonClass += " list-group-item-danger"; //  red
+                // riktig svar vises grønn
+                buttonClass += " list-group-item-success";
+              } else if (option === selected) {
+                // feil valgt → rød
+                buttonClass += " list-group-item-danger";
               } else {
-                buttonClass += " disabled";
+                // alle andre bli grå
+                buttonClass += " disabled opacity-50";
               }
             }
 
@@ -139,7 +113,7 @@ function QuizPlay() {
               <button
                 key={i}
                 className={buttonClass}
-                onClick={() => !selected && handleAnswer(option)}
+                onClick={() => handleAnswer(option)}
                 disabled={!!selected}
               >
                 {option}
@@ -148,26 +122,40 @@ function QuizPlay() {
           })}
         </div>
 
-        {feedback && (
+        {/* feedback-tekst etter brukeren har svart */}
+        {feedbackText && (
           <div
-            className={`alert mt-3 ${
-              feedback.startsWith("✅")
-                ? "alert-success"
-                : "alert-danger"
-            } text-center`}
+            className={`alert mt-3 text-center ${
+              wasCorrect ? "alert-success" : "alert-danger"
+            }`}
           >
-            {feedback}
+            {feedbackText}
           </div>
         )}
 
-        {/* 🔹 Next button appears only after answering */}
+        {/* Neste-knapp vises bare etter svar */}
         {selected && (
           <div className="text-center mt-3">
-            <button className="btn btn-primary" onClick={handleNext}>
-              ➡️ Next Question
+            <button
+              className="btn btn-primary"
+              onClick={handleNext}
+            >
+              {current + 1 < quiz.questions.length
+                ? "➡️ Next Question"
+                : "🏁 See Results"}
             </button>
           </div>
         )}
+      </div>
+
+      {/* Tilbake til select (hvis de vil rage-quit 🤭) */}
+      <div className="text-center mt-4">
+        <button
+          className="btn btn-outline-secondary btn-sm"
+          onClick={() => navigate("/select")}
+        >
+          ⬅ Back to quiz list
+        </button>
       </div>
     </div>
   );
