@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 
@@ -5,8 +6,10 @@ namespace QuizApp.Models;
 public class Question
 {
     public int QuestionId { get; set; } //Primary Key
-    public string Text { get; set; } = string.Empty;
+
+    [Required]
+    public string QuestionText { get; set; } = string.Empty;
     public int QuizId { get; set; } // Foreign Key linking to Quiz
     public Quiz Quiz { get; set; } = null!;
-    public ICollection<Option> Options { get; set; } = new List<Option>();
+    public ICollection<Answer> Answers { get; set; } = new List<Answer>();
 }
