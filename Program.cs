@@ -6,8 +6,12 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
-builder.Services.AddControllers();
+/* This tells ASP.NET’s JSON serializer (System.Text.Json) to skip
+ over circular object references instead of throwing an exception.*/
+builder.Services.AddControllers()
+    .AddJsonOptions(x =>
+        x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -44,10 +48,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:8080", "http://localhost:3000")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+      policy.WithOrigins("http://localhost:5251", "http://localhost:3000")
+         .AllowAnyHeader()
+         .AllowAnyMethod()
+         .AllowCredentials();
+
     });
 });
 
