@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Options;
 
-namespace QuizApp.Models
+namespace QuizApp.Models;
+public class Question
 {
     public class Question
     {
@@ -17,5 +19,9 @@ namespace QuizApp.Models
         public virtual ICollection<Answer> Answers { get; set; }
         public ICollection<UserAnswer> UserAnswers { get; set; }
 
-    }
+    [Required]
+    public string QuestionText { get; set; } = string.Empty;
+    public int QuizId { get; set; } // Foreign Key linking to Quiz
+    public Quiz Quiz { get; set; } = null!;
+    public ICollection<Answer> Answers { get; set; } = new List<Answer>();
 }

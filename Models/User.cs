@@ -1,7 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
+using QuizApp.Controllers;
 
-namespace QuizApp.Models
+namespace QuizApp.Models;
+
+public class User
 {
     public class User
     {

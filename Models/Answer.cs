@@ -16,5 +16,10 @@ namespace QuizApp.Models
         public virtual Question Question { get; set; }
         public ICollection<UserAnswer> UserAnswers { get; set; }
 
+        [Required]
+        public string AnswerText { get; set; } = string.Empty;
+        public bool IsCorrect { get; set; }
+        public int QuestionId { get; set; }
+        public Question Question { get; set; } = null!;
     }
 }

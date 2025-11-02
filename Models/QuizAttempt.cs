@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+
+// join table for User and Quiz
 namespace QuizApp.Models
 {
     public class QuizAttempt
@@ -20,5 +22,6 @@ namespace QuizApp.Models
 
         public virtual ICollection<UserAnswer> UserAnswers { get; set; }
 
+        public ICollection<UserAnswer> UserAnswers { get; set; } = new List<UserAnswer>();
     }
 }

@@ -1,4 +1,8 @@
-﻿namespace QuizApp.Models
+namespace QuizApp.Models;
+
+
+// join table for Question and Answer
+public class UserAnswer
 {
     public class UserAnswer
     {
