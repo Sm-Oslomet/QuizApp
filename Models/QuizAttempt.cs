@@ -7,16 +7,20 @@ namespace QuizApp.Models
 {
     public class QuizAttempt
     {
-        public int QuizAttemptId { get; set; }
+        public int Id { get; set; }
+
         public int UserId { get; set; }
-        public User User { get; set; } = null!;
+        public virtual User User { get; set; }
 
         public int QuizId { get; set; }
-        public Quiz Quiz { get; set; } = null!;
+        public virtual Quiz Quiz { get; set; }
 
         public int Score { get; set; }
         public int TotalQuestions { get; set; }
-        public DateTime AttemptedAt { get; set; } = DateTime.Now;
+
+        public DateTime AttemptedAt { get; set; }
+
+        public virtual ICollection<UserAnswer> UserAnswers { get; set; }
 
         public ICollection<UserAnswer> UserAnswers { get; set; } = new List<UserAnswer>();
     }

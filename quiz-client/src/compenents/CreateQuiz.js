@@ -59,11 +59,14 @@ function CreateQuiz() {
 
 
 
-   const saved = JSON.parse(localStorage.getItem("quizzes") || "[]");
-  localStorage.setItem("quizzes", JSON.stringify([...saved, newQuiz]));
-
-  alert("Quiz saved locally!");
-  navigate("/select");
+      try {
+          await quizService.create(newQuiz);
+          alert("Quiz saved to server!");
+          navigate("/select");
+      } catch (err) {
+          console.error("Quiz creation failed:", err);
+          alert(err.message || "Failed to save quiz");
+      }
   };
 
   return (
