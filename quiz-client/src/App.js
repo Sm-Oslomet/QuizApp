@@ -16,8 +16,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 
-
-
 function App() {
   return (
     <Router>
@@ -31,8 +29,6 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-            
-
 
               {/* Beskyttede sider */}
               <Route

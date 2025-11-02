@@ -6,20 +6,21 @@ namespace QuizApp.Models
 {
     public class Quiz
     {
-        public int QuizId { get; set; }
+        public int Id { get; set; }
 
         [Required]
-        public string Title { get; set; } = string.Empty;
-        
-        [Required]
-        public string Description { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        [StringLength(200)]
+        public string Title { get; set; }
 
-        // links to User
-        public int UserId { get; set; } 
-        public User User { get; set; } = null!;
+        [StringLength(1000)]
+        public string Description { get; set; }
 
-        public ICollection<Question> Questions { get; set; } = new List<Question>();
-        public ICollection<QuizAttempt> QuizAttempts { get; set; } = new List<QuizAttempt>();
+        public DateTime CreatedAt { get; set; }
+
+        public int UserId { get; set; }
+        public virtual User User { get; set; }
+
+        public virtual ICollection<Question> Questions { get; set; }
+        public virtual ICollection<QuizAttempt> QuizAttempts { get; set; }
     }
 }

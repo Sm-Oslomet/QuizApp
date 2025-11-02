@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using QuizApp.DAL;
 using QuizApp.DTOs.Quiz;
 using QuizApp.Models;
-using System;
 using System.Security.Claims;
 
 namespace QuizApp.Controllers
@@ -24,9 +23,10 @@ namespace QuizApp.Controllers
         private int GetCurrentUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return int.Parse(userIdClaim ?? "0");
+            return int.TryParse(userIdClaim, out int id) ? id : 0;
         }
 
+        // ✅ Keep: "My Quizzes" shows only the user's own quizzes
         [HttpGet]
         public async Task<IActionResult> GetMyQuizzes()
         {
@@ -48,29 +48,28 @@ namespace QuizApp.Controllers
             return Ok(quizzes);
         }
 
+        // ✅ CHANGED: remove the userId filter, so any quiz can be viewed/played
         [HttpGet("{id}")]
+        [AllowAnonymous] // optionally make this public
         public async Task<IActionResult> GetQuiz(int id)
         {
             var quiz = await _context.Quizzes
                 .Include(q => q.Questions)
-                    .ThenInclude(q => q.Answers)
+                .ThenInclude(q => q.Answers)
                 .FirstOrDefaultAsync(q => q.Id == id);
 
             if (quiz == null)
-            {
                 return NotFound(new { message = "Quiz not found" });
-            }
 
             return Ok(quiz);
         }
 
+        // ✅ Create: still tied to logged-in user
         [HttpPost]
         public async Task<IActionResult> CreateQuiz([FromBody] CreateQuizDto dto)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(new { message = "Invalid data" });
-            }
 
             var userId = GetCurrentUserId();
 
@@ -97,6 +96,7 @@ namespace QuizApp.Controllers
             return CreatedAtAction(nameof(GetQuiz), new { id = quiz.Id }, quiz);
         }
 
+        // ✅ Update: only the creator can edit
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateQuiz(int id, [FromBody] CreateQuizDto dto)
         {
@@ -107,18 +107,13 @@ namespace QuizApp.Controllers
                 .FirstOrDefaultAsync(q => q.Id == id && q.UserId == userId);
 
             if (quiz == null)
-            {
                 return NotFound(new { message = "Quiz not found" });
-            }
 
-            // Update quiz details
             quiz.Title = dto.Title;
             quiz.Description = dto.Description;
 
-            // Remove old questions and answers
             _context.Questions.RemoveRange(quiz.Questions);
 
-            // Add new questions and answers
             quiz.Questions = dto.Questions.Select(q => new Question
             {
                 QuestionText = q.QuestionText,
@@ -135,6 +130,7 @@ namespace QuizApp.Controllers
             return Ok(quiz);
         }
 
+        // ✅ Delete: only the creator can delete
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteQuiz(int id)
         {
@@ -143,9 +139,7 @@ namespace QuizApp.Controllers
                 .FirstOrDefaultAsync(q => q.Id == id && q.UserId == userId);
 
             if (quiz == null)
-            {
                 return NotFound(new { message = "Quiz not found" });
-            }
 
             _context.Quizzes.Remove(quiz);
             await _context.SaveChangesAsync();
@@ -153,6 +147,7 @@ namespace QuizApp.Controllers
             return Ok(new { message = "Quiz deleted successfully" });
         }
 
+        // ✅ Submit: any logged-in user can take the quiz
         [HttpPost("submit")]
         public async Task<IActionResult> SubmitQuiz([FromBody] SubmitQuizDto dto)
         {
@@ -163,11 +158,8 @@ namespace QuizApp.Controllers
                 .FirstOrDefaultAsync(q => q.Id == dto.QuizId);
 
             if (quiz == null)
-            {
                 return NotFound(new { message = "Quiz not found" });
-            }
 
-            // Calculate score
             int score = 0;
             var userAnswers = new List<UserAnswer>();
 
@@ -185,13 +177,10 @@ namespace QuizApp.Controllers
                     });
 
                     if (answer.IsCorrect)
-                    {
                         score++;
-                    }
                 }
             }
 
-            // Save quiz attempt
             var attempt = new QuizAttempt
             {
                 UserId = userId,
@@ -214,6 +203,7 @@ namespace QuizApp.Controllers
             });
         }
 
+        // ✅ Attempts still user-restricted
         [HttpGet("attempt/{attemptId}")]
         public async Task<IActionResult> GetAttempt(int attemptId)
         {
@@ -226,9 +216,7 @@ namespace QuizApp.Controllers
                 .FirstOrDefaultAsync(a => a.Id == attemptId && a.UserId == userId);
 
             if (attempt == null)
-            {
                 return NotFound(new { message = "Attempt not found" });
-            }
 
             return Ok(attempt);
         }

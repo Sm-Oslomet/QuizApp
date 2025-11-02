@@ -1,79 +1,113 @@
-import $ from "jquery";
+import { authService } from "./authService";
 
-const API_URL = "http://localhost:5000/api/quizzes";
-const USE_API = false; // Endre til true når du vil bruke server (API)
+const API_URL = `${process.env.REACT_APP_API_URL}/quiz`;
 
-
-// API mode (AJAX)
-
-async function apiGetAll() {
-  return $.ajax({ url: API_URL, type: "GET" });
-}
-
-async function apiGetOne(id) {
-  return $.ajax({ url: `${API_URL}/${id}`, type: "GET" });
-}
-
-async function apiCreate(quiz) {
-  return $.ajax({
-    url: API_URL,
-    type: "POST",
-    contentType: "application/json",
-    data: JSON.stringify(quiz),
-  });
-}
-
-async function apiUpdate(id, quiz) {
-  return $.ajax({
-    url: `${API_URL}/${id}`,
-    type: "PUT",
-    contentType: "application/json",
-    data: JSON.stringify(quiz),
-  });
-}
-
-async function apiDelete(id) {
-  return $.ajax({ url: `${API_URL}/${id}`, type: "DELETE" });
-}
-
-// LocalStorage mode
-function lsGetAll() {
-  return Promise.resolve(JSON.parse(localStorage.getItem("quizzes") || "[]"));
-}
-
-function lsGetOne(id) {
-  const all = JSON.parse(localStorage.getItem("quizzes") || "[]");
-  const found = all.find((q) => q.id === id);
-  return Promise.resolve(found || null);
-}
-
-function lsCreate(quiz) {
-  const all = JSON.parse(localStorage.getItem("quizzes") || "[]");
-  const newQuiz = { ...quiz, id: crypto.randomUUID() };
-  localStorage.setItem("quizzes", JSON.stringify([...all, newQuiz]));
-  return Promise.resolve(newQuiz);
-}
-
-function lsUpdate(id, quiz) {
-  const all = JSON.parse(localStorage.getItem("quizzes") || "[]");
-  const idx = all.findIndex((q) => q.id === id);
-  if (idx === -1) return Promise.reject("Quiz not found");
-  all[idx] = { ...quiz, id };
-  localStorage.setItem("quizzes", JSON.stringify(all));
-  return Promise.resolve(all[idx]);
-}
-
-function lsDelete(id) {
-  const all = JSON.parse(localStorage.getItem("quizzes") || "[]");
-  const updated = all.filter((q) => q.id !== id);
-  localStorage.setItem("quizzes", JSON.stringify(updated));
-  return Promise.resolve();
-}
-// Velg modus
 export const quizService = {
-  getAll: USE_API ? apiGetAll : lsGetAll,
-  getOne: USE_API ? apiGetOne : lsGetOne,
-  create: USE_API ? apiCreate : lsCreate,
-  update: USE_API ? apiUpdate : lsUpdate,
-  remove: USE_API ? apiDelete : lsDelete,
+    async getAll() {
+        const res = await fetch(API_URL, {
+            headers: {
+                "Content-Type": "application/json",
+                ...authService.getAuthHeader(),
+            },
+        });
+        if (!res.ok) throw new Error("Failed to load quizzes");
+        return await res.json();
+    },
+
+    async getById(id) {
+        const res = await fetch(`${API_URL}/${id}`, {
+            headers: {
+                "Content-Type": "application/json",
+                ...authService.getAuthHeader(),
+            },
+        });
+        if (!res.ok) throw new Error("Quiz not found");
+        return await res.json();
+    },
+
+    async create(quiz) {
+        const payload = {
+            title: quiz.title,
+            description: quiz.description,
+            questions: quiz.questions.map(q => ({
+                questionText: q.text,
+                answers: q.options.map(o => ({
+                    answerText: o,
+                    isCorrect: o === q.correctAnswer,
+                })),
+            })),
+        };
+
+        const res = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...authService.getAuthHeader(),
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to create quiz");
+        return data;
+    },
+
+    async update(id, quiz) {
+        const payload = {
+            title: quiz.title,
+            description: quiz.description,
+            questions: quiz.questions.map(q => ({
+                questionText: q.text,
+                answers: q.options.map(o => ({
+                    answerText: o,
+                    isCorrect: o === q.correctAnswer,
+                })),
+            })),
+        };
+
+        const res = await fetch(`${API_URL}/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                ...authService.getAuthHeader(),
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to update quiz");
+        return data;
+    },
+
+    async remove(id) {
+        const res = await fetch(`${API_URL}/${id}`, {
+            method: "DELETE",
+            headers: { ...authService.getAuthHeader() },
+        });
+        if (!res.ok) throw new Error("Failed to delete quiz");
+        return await res.json();
+    },
+
+    async submit(quizId, userAnswers) {
+        const payload = {
+            quizId,
+            userAnswers: userAnswers.map(a => ({
+                questionId: a.questionId,
+                answerId: a.answerId,
+            })),
+        };
+
+        const res = await fetch(`${API_URL}/submit`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...authService.getAuthHeader(),
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to submit quiz");
+        return data;
+    },
 };

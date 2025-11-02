@@ -6,16 +6,19 @@ namespace QuizApp.Models;
 
 public class User
 {
-    public int UserId { get; set; }
+    public class User
+    {
+        public int Id { get; set; }
 
-    [Required]
-    [MaxLength(20)]
-    public string Username { get; set; } = string.Empty;
+        [Required]
+        [StringLength(100)]
+        public string Username { get; set; }
 
-    public string PasswordHash { get; set; } = string.Empty;
+        [Required]
+        [StringLength(255)]
+        public string PasswordHash { get; set; }
 
-    public ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
-
-    // Since QuizAttempt links to UserAnswer, we can have User linked to QuizAttempt
-    public ICollection<QuizAttempt> QuizAttempts { get; set; } = new List<QuizAttempt>(); 
+        public virtual ICollection<Quiz> Quizzes { get; set; }
+        public virtual ICollection<QuizAttempt> QuizAttempts { get; set; }
+    }
 }

@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { authService } from "./AuthService"; 
+import { authService } from "../../api/authService"; 
 
 function RequireAuth({ children }) {
   const user = authService.getCurrentUser();
