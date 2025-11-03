@@ -14,9 +14,10 @@ namespace QuizApp.DAL.Repositories
         }
 
         // CRUD for Quiz
-        public async Task<IEnumerable<Quiz>> GetAllQuizzesAsync()
+        public async Task<IEnumerable<Quiz>> GetAllQuizzesByUserIdAsync(int userId)
         {
             return await _context.Quizzes
+            .Where(q=>q.UserId == userId)
             .Include(q => q.Questions)
             .ThenInclude(a => a.Answers)
             .ToListAsync();

@@ -6,7 +6,7 @@ namespace QuizApp.DAL.Interfaces
     public interface IQuizRepository
     {
         // opreations for a Quiz
-        Task<IEnumerable<Quiz>> GetAllQuizzesAsync();
+        Task<IEnumerable<Quiz>> GetAllQuizzesByUserIdAsync(int userId);
         Task<Quiz?> GetQuizByIdAsync(int id);
         Task CreateQuizAsync(Quiz quiz); // we give each of the 3 operations their own unique names instead of all having "create" since that could lead to confusion when all 3 are called.
         Task UpdateQuizAsync(Quiz quiz);

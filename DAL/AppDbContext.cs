@@ -46,7 +46,7 @@ namespace QuizApp.DAL
                 .HasOne(qa => qa.User)
                 .WithMany(u => u.QuizAttempts)
                 .HasForeignKey(qa => qa.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict); // set to restrict, had it as cascade, but this caused the database to go in circles during testing
 
             modelBuilder.Entity<QuizAttempt>()
                 .HasOne(qa => qa.Quiz)
