@@ -1,22 +1,36 @@
 // App.js
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./compenents/Home";
-import CreateQuiz from "./compenents/CreateQuiz";
-import SelectQuiz from "./compenents/SelectQuiz";
-import QuizPlay from "./compenents/QuizPlay";
-import EditQuiz from "./compenents/EditQuiz";
-import Footer from "./compenents/Footer";
+
+// Layout components
 import Navbar from "./compenents/Navbar";
-import ResultPage from "./compenents/ResultPage";
-import Login from "./compenents/Login/Login";
-import Register from "./compenents/Login/Register";
-import RequireAuth from "./compenents/Login/RequireAuth";
-import "bootstrap/dist/css/bootstrap.min.css"; 
+import Footer from "./compenents/Footer";
+
+// Public pages
+import Home from "./Pages/Home";
+import Login from "./Pages/Auth/Login";
+import Register from "./Pages/Auth/Register";
+import VerifyEmail from "./Pages/Auth/VerifyEmail";
+import ForgotPassword from "./Pages/Auth/ForgotPassword";
+
+// Quiz pages
+import CreateQuiz from "./Pages/Quiz/CreateQuiz";
+import SelectQuiz from "./Pages/Quiz/SelectQuiz";
+import EditQuiz from "./Pages/Quiz/EditQuiz";
+import QuizPlay from "./Pages/Quiz/QuizPlay";
+import ResultPage from "./Pages/Quiz/ResultPage";
+
+// Protected
+import RequireAuth from "./Pages/Protected/RequireAuth";
+import AdminRoute from "./Pages/Protected/AdminRoute";
+import NotAuthorized from "./Pages/Protected/NotAuthorized";
+
+// Admin
+import Dashbord from "./Pages/Admin/Dashbord";
+
+// CSS + Bootstrap
+import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-
-
-
 
 function App() {
   return (
@@ -24,17 +38,18 @@ function App() {
       <div className="d-flex flex-column min-vh-100">
         <Navbar />
 
-        <main className="flex-grow-1 d-flex align-items-center justify-content-center bg-light py-5">
+        <main className="flex-grow-1 bg-light py-5">
           <div className="container">
             <Routes>
-              {/* Offentlige sider */}
+
+              {/* Public routes */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-            
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
 
-
-              {/* Beskyttede sider */}
+              {/* User protected routes */}
               <Route
                 path="/create"
                 element={
@@ -43,6 +58,7 @@ function App() {
                   </RequireAuth>
                 }
               />
+
               <Route
                 path="/select"
                 element={
@@ -51,14 +67,7 @@ function App() {
                   </RequireAuth>
                 }
               />
-              <Route
-                path="/play/:id"
-                element={
-                  <RequireAuth>
-                    <QuizPlay />
-                  </RequireAuth>
-                }
-              />
+
               <Route
                 path="/edit/:id"
                 element={
@@ -67,6 +76,16 @@ function App() {
                   </RequireAuth>
                 }
               />
+
+              <Route
+                path="/play/:id"
+                element={
+                  <RequireAuth>
+                    <QuizPlay />
+                  </RequireAuth>
+                }
+              />
+
               <Route
                 path="/result/:id"
                 element={
@@ -75,6 +94,19 @@ function App() {
                   </RequireAuth>
                 }
               />
+
+              {/* Admin protected routes */}
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <Dashbord />
+                  </AdminRoute>
+                }
+              />
+
+              <Route path="/not-authorized" element={<NotAuthorized />} />
+
             </Routes>
           </div>
         </main>
