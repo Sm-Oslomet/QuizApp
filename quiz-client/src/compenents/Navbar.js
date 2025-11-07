@@ -1,11 +1,10 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { authService } from "./Login/AuthService"; 
+import { authService } from "../services/AuthService"; 
 
 function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
-
   const user = authService.getCurrentUser();
 
   const handleLogout = () => {
@@ -13,15 +12,19 @@ function Navbar() {
     navigate("/login");
   };
 
+  const displayName = user?.guest ? "Guest" : user?.name;
+
+  const isActive = (path) =>
+    location.pathname === path ? "active text-warning" : "";
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
       <div className="container">
-        {/* App name */}
+        
         <Link className="navbar-brand fw-bold" to="/">
           QuizApp
         </Link>
 
-        {/* Toggle for mobile */}
         <button
           className="navbar-toggler"
           type="button"
@@ -31,50 +34,22 @@ function Navbar() {
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* Links */}
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto align-items-center">
+
+            {/* Home */}
             <li className="nav-item">
-              <Link
-                className={`nav-link ${
-                  location.pathname === "/" ? "active text-warning" : ""
-                }`}
-                to="/"
-              >
+              <Link className={`nav-link ${isActive("/")}`} to="/">
                 Home
               </Link>
             </li>
 
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
-                  location.pathname === "/create" ? "active text-warning" : ""
-                }`}
-                to="/create"
-              >
-                Create Quiz
-              </Link>
-            </li>
-
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
-                  location.pathname === "/select" ? "active text-warning" : ""
-                }`}
-                to="/select"
-              >
-                Select Quiz
-              </Link>
-            </li>
-            {/* User section */}
+            {/* Logged-in */}
             {user ? (
               <>
                 <li className="nav-item text-white me-3">
-                  {user.guest
-                    ? "Guest"
-                    : `Logged in as ${user.username}`}
+                  Logged in as {displayName}
                 </li>
-
                 <li className="nav-item">
                   <button
                     onClick={handleLogout}
@@ -86,10 +61,12 @@ function Navbar() {
               </>
             ) : (
               <>
+                {/* Login */}
                 <li className="nav-item">
                   <Link
                     className={`nav-link ${
-                      location.pathname === "/login"
+                      location.pathname === "/login" &&
+                      !location.search.includes("admin=true")
                         ? "active text-warning"
                         : ""
                     }`}
@@ -99,20 +76,33 @@ function Navbar() {
                   </Link>
                 </li>
 
+                {/* Register */}
                 <li className="nav-item">
                   <Link
-                    className={`nav-link ${
-                      location.pathname === "/register"
-                        ? "active text-warning"
-                        : ""
-                    }`}
+                    className={`nav-link ${isActive("/register")}`}
                     to="/register"
                   >
                     Register
                   </Link>
                 </li>
+
+                {/* Admin Login (ryddet) */}
+                <li className="nav-item">
+                  <Link
+                    className={`nav-link ${
+                      location.pathname === "/login" &&
+                      location.search.includes("admin=true")
+                        ? "active text-warning"
+                        : ""
+                    }`}
+                    to="/login?admin=true"
+                  >
+                    Admin Login
+                  </Link>
+                </li>
               </>
             )}
+
           </ul>
         </div>
       </div>

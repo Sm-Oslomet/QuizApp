@@ -19,7 +19,7 @@ function Footer() {
             </small>
           </div>
 
-          {/* Høyre side – sosiale medier */}
+          {/* sosiale medier */}
           <div className="col-12 col-md-6 d-flex justify-content-center justify-content-md-end">
             <a
               href="https://www.facebook.com"
