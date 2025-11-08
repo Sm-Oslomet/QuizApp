@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using QuizApp.DAL;
+using QuizApp.DAL.Interfaces;
 using QuizApp.DTOs.Quiz;
 using QuizApp.Models;
 using System.Security.Claims;
@@ -10,79 +9,100 @@ namespace QuizApp.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize]// authentication required to access all the endpoints in this controller
     public class QuizController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IQuizRepository _quizRepo; // CRUD for Quiz
+        private readonly IQuizAttemptRepository _quizAttemptRepo; // Since we separated QuizAttempt and Quiz Repo/Interfaces into their own files, we need to access both
 
-        public QuizController(AppDbContext context)
+        public QuizController(IQuizRepository quizRepo, IQuizAttemptRepository quizAttemptRepo) // dependency injection, allows controller to call into the data layer
         {
-            _context = context;
+            _quizRepo = quizRepo;
+            _quizAttemptRepo = quizAttemptRepo;
         }
 
-        private int GetCurrentUserId()
+        private int GetCurrentUserId() // We extract UserId from the jwt token that was created in account creation
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return int.TryParse(userIdClaim, out int id) ? id : 0;
+            return int.Parse(userIdClaim ?? "0");
         }
 
-        // ✅ Keep: "My Quizzes" shows only the user's own quizzes
         [HttpGet]
-        public async Task<IActionResult> GetMyQuizzes()
+        public async Task<IActionResult> GetMyQuizzes() // gets all quizzes
         {
             var userId = GetCurrentUserId();
-            var quizzes = await _context.Quizzes
-                .Where(q => q.UserId == userId)
-                .OrderByDescending(q => q.CreatedAt)
-                .Select(q => new
-                {
-                    q.Id,
-                    q.Title,
-                    q.Description,
-                    q.CreatedAt,
-                    q.UserId,
-                    QuestionCount = q.Questions.Count()
-                })
-                .ToListAsync();
+            var quizzes = await _quizRepo.GetAllQuizzesByUserIdAsync(userId); // pulls quizzess by the current user, based on userId
 
-            return Ok(quizzes);
+            var quizDtos = quizzes.Select(q => new QuizDto // We convert each quiz to QuizDtom 
+            {
+                QuizId = q.Id, // for each quiz we also map their questions and answers, to QuestionDto and AnswerDto
+                Title = q.Title,
+                Description = q.Description,
+                CreatedAt = q.CreatedAt,
+                UserId = q.UserId,
+                Questions = q.Questions.Select(ques => new QuestionDto
+                {
+                    QuestionId = ques.Id,
+                    QuestionText = ques.QuestionText,
+                    Answers = ques.Answers.Select(a => new AnswerDto
+                    {
+                        AnswerId = a.Id,
+                        AnswerText = a.AnswerText,
+                        IsCorrect = a.IsCorrect
+                    }).ToList()
+                }).ToList() // this way we only return data, keeping EF navigation properties separate
+            });
+
+            return Ok(quizDtos); // returns json of a user's quizzes
         }
 
-        // ✅ CHANGED: remove the userId filter, so any quiz can be viewed/played
-        [HttpGet("{id}")]
-        [AllowAnonymous] // optionally make this public
+        [HttpGet("{id}")] // a GET methot based on a Quiz id
         public async Task<IActionResult> GetQuiz(int id)
         {
-            var quiz = await _context.Quizzes
-                .Include(q => q.Questions)
-                .ThenInclude(q => q.Answers)
-                .FirstOrDefaultAsync(q => q.Id == id);
+            var quiz = await _quizRepo.GetQuizByIdAsync(id); // test to see if the quiz exists, based on it's quizId
+            if (quiz == null) return NotFound(new { message = "Quiz not found" });
 
-            if (quiz == null)
-                return NotFound(new { message = "Quiz not found" });
+            var quizDto = new QuizDto // we map the quiz nito a QuizDto, same structure as earlier
+            {
+                QuizId = quiz.Id,
+                Title = quiz.Title,
+                Description = quiz.Description,
+                CreatedAt = quiz.CreatedAt,
+                UserId = quiz.UserId,
+                Questions = quiz.Questions.Select(q => new QuestionDto
+                {
+                    QuestionId = q.Id,
+                    QuestionText = q.QuestionText,
+                    Answers = q.Answers.Select(a => new AnswerDto
+                    {
+                        AnswerId = a.Id,
+                        AnswerText = a.AnswerText,
+                        IsCorrect = a.IsCorrect
+                    }).ToList()
+                }).ToList()
+            };
 
-            return Ok(quiz);
+            return Ok(quizDto);
         }
 
-        // ✅ Create: still tied to logged-in user
         [HttpPost]
-        public async Task<IActionResult> CreateQuiz([FromBody] CreateQuizDto dto)
+        public async Task<IActionResult> CreateQuiz([FromBody] CreateQuizDto dto) // model to create a new quiz
         {
             if (!ModelState.IsValid)
                 return BadRequest(new { message = "Invalid data" });
 
-            var userId = GetCurrentUserId();
+            var userId = GetCurrentUserId(); // quiz is set to the current user
 
-            var quiz = new Quiz
+            var quiz = new Quiz // we build a quiz with nested questions and answers
             {
                 Title = dto.Title,
                 Description = dto.Description,
                 UserId = userId,
                 CreatedAt = DateTime.Now,
-                Questions = dto.Questions.Select(q => new Question
+                Questions = dto.Questions.Select(q => new Question // nesting question
                 {
                     QuestionText = q.QuestionText,
-                    Answers = q.Answers.Select(a => new Answer
+                    Answers = q.Answers.Select(a => new Answer // nesting answer
                     {
                         AnswerText = a.AnswerText,
                         IsCorrect = a.IsCorrect
@@ -90,34 +110,48 @@ namespace QuizApp.Controllers
                 }).ToList()
             };
 
-            _context.Quizzes.Add(quiz);
-            await _context.SaveChangesAsync();
+            await _quizRepo.CreateQuizAsync(quiz);
 
-            return CreatedAtAction(nameof(GetQuiz), new { id = quiz.Id }, quiz);
+            // Return DTO instead of EF entity
+            var quizDto = new QuizDto // we then map the quiz to a quizdto 
+            {
+                QuizId = quiz.Id,
+                Title = quiz.Title,
+                Description = quiz.Description,
+                CreatedAt = quiz.CreatedAt,
+                UserId = quiz.UserId,
+                Questions = quiz.Questions.Select(q => new QuestionDto
+                {
+                    QuestionId = q.Id,
+                    QuestionText = q.QuestionText,
+                    Answers = q.Answers.Select(a => new AnswerDto
+                    {
+                        AnswerId = a.Id,
+                        AnswerText = a.AnswerText,
+                        IsCorrect = a.IsCorrect
+                    }).ToList()
+                }).ToList()
+            };
+
+            return CreatedAtAction(nameof(GetQuiz), new { id = quiz.Id }, quizDto);
         }
 
-        // ✅ Update: only the creator can edit
-        [HttpPut("{id}")]
+        [HttpPut("{id}")] // method for updating quiz
         public async Task<IActionResult> UpdateQuiz(int id, [FromBody] CreateQuizDto dto)
         {
             var userId = GetCurrentUserId();
-            var quiz = await _context.Quizzes
-                .Include(q => q.Questions)
-                    .ThenInclude(q => q.Answers)
-                .FirstOrDefaultAsync(q => q.Id == id && q.UserId == userId);
+            var quiz = await _quizRepo.GetQuizByIdAsync(id);
 
-            if (quiz == null)
+            if (quiz == null || quiz.UserId != userId) // make sure quiz exists and belongs to current user
                 return NotFound(new { message = "Quiz not found" });
 
-            quiz.Title = dto.Title;
+            quiz.Title = dto.Title; // updatesfields
             quiz.Description = dto.Description;
 
-            _context.Questions.RemoveRange(quiz.Questions);
-
+            quiz.Questions.Clear(); // replaces questions and answers
             quiz.Questions = dto.Questions.Select(q => new Question
             {
                 QuestionText = q.QuestionText,
-                QuizId = quiz.Id,
                 Answers = q.Answers.Select(a => new Answer
                 {
                     AnswerText = a.AnswerText,
@@ -125,63 +159,56 @@ namespace QuizApp.Controllers
                 }).ToList()
             }).ToList();
 
-            await _context.SaveChangesAsync();
+            await _quizRepo.UpdateQuizAsync(quiz);
 
-            return Ok(quiz);
+            return Ok(new { message = "Quiz updated successfully" }); 
         }
 
-        // ✅ Delete: only the creator can delete
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}")] // method for deleting a quiz based on it's id
         public async Task<IActionResult> DeleteQuiz(int id)
         {
             var userId = GetCurrentUserId();
-            var quiz = await _context.Quizzes
-                .FirstOrDefaultAsync(q => q.Id == id && q.UserId == userId);
+            var quiz = await _quizRepo.GetQuizByIdAsync(id);
 
-            if (quiz == null)
+            if (quiz == null || quiz.UserId != userId) // same check to see the quiz exists and belongs to the user
                 return NotFound(new { message = "Quiz not found" });
 
-            _context.Quizzes.Remove(quiz);
-            await _context.SaveChangesAsync();
-
+            await _quizRepo.DeleteQuizAsync(quiz.Id); // asynchroniously deletes quiz
             return Ok(new { message = "Quiz deleted successfully" });
         }
 
-        // ✅ Submit: any logged-in user can take the quiz
-        [HttpPost("submit")]
+        [HttpPost("submit")]// method that handles quiz completion by a user
         public async Task<IActionResult> SubmitQuiz([FromBody] SubmitQuizDto dto)
         {
             var userId = GetCurrentUserId();
-            var quiz = await _context.Quizzes
-                .Include(q => q.Questions)
-                    .ThenInclude(q => q.Answers)
-                .FirstOrDefaultAsync(q => q.Id == dto.QuizId);
+            var quiz = await _quizRepo.GetQuizByIdAsync(dto.QuizId);
 
             if (quiz == null)
                 return NotFound(new { message = "Quiz not found" });
 
-            int score = 0;
+
+            int score = 0; // score calculation
             var userAnswers = new List<UserAnswer>();
 
-            foreach (var userAnswer in dto.UserAnswers)
+            foreach (var userAnswer in dto.UserAnswers) // we iterate over the submition
             {
                 var question = quiz.Questions.FirstOrDefault(q => q.Id == userAnswer.QuestionId);
                 var answer = question?.Answers.FirstOrDefault(a => a.Id == userAnswer.AnswerId);
 
                 if (answer != null)
                 {
-                    userAnswers.Add(new UserAnswer
+                    userAnswers.Add(new UserAnswer // for each useranswer we get the question and the answer
                     {
-                        QuestionId = userAnswer.QuestionId,
+                        QuestionId = userAnswer.QuestionId, 
                         AnswerId = userAnswer.AnswerId
                     });
 
                     if (answer.IsCorrect)
-                        score++;
+                        score++; // increases score each time the user is correct
                 }
             }
 
-            var attempt = new QuizAttempt
+            var attempt = new QuizAttempt // we create attempt records and store all the info
             {
                 UserId = userId,
                 QuizId = dto.QuizId,
@@ -191,34 +218,16 @@ namespace QuizApp.Controllers
                 UserAnswers = userAnswers
             };
 
-            _context.QuizAttempts.Add(attempt);
-            await _context.SaveChangesAsync();
+            await _quizAttemptRepo.AddAttemptAsync(attempt); // we use quizattempt repo to save attempts
+            await _quizAttemptRepo.SaveChangesAsync();
 
-            return Ok(new
+            return Ok(new // returns info on the attempt, with score and percentage correct
             {
                 attemptId = attempt.Id,
                 score = attempt.Score,
                 totalQuestions = attempt.TotalQuestions,
-                percentage = (attempt.Score * 100.0) / attempt.TotalQuestions
+                percentage = attempt.Score * 100.0 / attempt.TotalQuestions
             });
-        }
-
-        // ✅ Attempts still user-restricted
-        [HttpGet("attempt/{attemptId}")]
-        public async Task<IActionResult> GetAttempt(int attemptId)
-        {
-            var userId = GetCurrentUserId();
-            var attempt = await _context.QuizAttempts
-                .Include(a => a.Quiz)
-                    .ThenInclude(q => q.Questions)
-                        .ThenInclude(q => q.Answers)
-                .Include(a => a.UserAnswers)
-                .FirstOrDefaultAsync(a => a.Id == attemptId && a.UserId == userId);
-
-            if (attempt == null)
-                return NotFound(new { message = "Attempt not found" });
-
-            return Ok(attempt);
         }
     }
 }

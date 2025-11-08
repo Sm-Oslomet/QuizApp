@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using QuizApp.DAL;
+using QuizApp.DAL.Interfaces;
 using QuizApp.DTOs.Auth;
 using QuizApp.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -13,112 +10,101 @@ using System.Text;
 
 namespace QuizApp.Controllers
 {
-    [ApiController]
+    [ApiController] // auto model validation and error handling
     [Route("api/[controller]")]
     public class AccountController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly IConfiguration _configuration;
+        private readonly IUserRepository _userRepo; 
+        private readonly IConfiguration _configuration; // used to access jwt  
 
-        public AccountController(AppDbContext context, IConfiguration configuration)
+        public AccountController(IUserRepository userRepo, IConfiguration configuration) // dependency injection
         {
-            _context = context;
+            _userRepo = userRepo;
             _configuration = configuration;
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto request)
+        [HttpPost("register")] //Handles POST /api/account/register
+        public async Task<IActionResult> Register([FromBody] RegisterDto request) // takes a json body and maps it to ReigsterDto
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(new { message = "Invalid data" });
-            }
 
-            // Check if username already exists
-            var existingUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == request.Username);
-
+            // Checks for existing username, to avoid duplicates
+            var existingUser = await _userRepo.GetUserByUsernameAsync(request.Username);
             if (existingUser != null)
-            {
                 return BadRequest(new { message = "Username already exists" });
-            }
 
-            // Create new user
-            var user = new User
+            var user = new User // we create a new user object
             {
                 Username = request.Username,
-                PasswordHash = HashPassword(request.Password)
+                PasswordHash = HashPassword(request.Password) // Store the password after hashing it
             };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            await _userRepo.CreateUserAsync(user); // asynchroniously adds user to the database
+            await _userRepo.SaveChangesAsync();
 
-            // Generate JWT token
-            var token = GenerateJwtToken(user);
+            var token = GenerateJwtToken(user); // token generated after registering user
 
-            return Ok(new
+            return Ok(new // returns response for successful registration
             {
-                token = token,
+                token,
                 username = user.Username,
                 userId = user.Id
             });
         }
 
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto request)
+        [HttpPost("login")] // Handles POST /api/account/login
+        public async Task<IActionResult> Login([FromBody] LoginDto request) // login form expects username and password
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(new { message = "Invalid data" });
-            }
 
-            var passwordHash = HashPassword(request.Password);
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == request.Username && u.PasswordHash == passwordHash);
-
-            if (user == null)
-            {
+            var user = await _userRepo.GetUserByUsernameAsync(request.Username);
+            if (user == null) // checks for an existing username
                 return Unauthorized(new { message = "Invalid username or password" });
-            }
 
-            // Generate JWT token
-            var token = GenerateJwtToken(user);
+            var hashedPassword = HashPassword(request.Password);
+            if (user.PasswordHash != hashedPassword) // checks for a matching password
+                return Unauthorized(new { message = "Invalid username or password" });
+
+            var token = GenerateJwtToken(user); // returns a JWT token, username and userId for a successful login 
 
             return Ok(new
             {
-                token = token,
+                token,
                 username = user.Username,
                 userId = user.Id
             });
         }
 
+        // Code used to generate JWT token, which was written with the assistance of ai
         private string GenerateJwtToken(User user)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes( //symmetric key, same for signing in and verification
                 _configuration["Jwt:Key"] ?? "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256); // uses HMAC SHA-256 to sign the token
 
             var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            { // we encode claims into the jwt
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // user ID
+                new Claim(ClaimTypes.Name, user.Username), // username
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // unique token ID
             };
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"] ?? "QuizSystemAPI",
                 audience: _configuration["Jwt:Audience"] ?? "QuizSystemClient",
                 claims: claims,
-                expires: DateTime.Now.AddDays(7),
+                expires: DateTime.Now.AddDays(7), // tokin valid for 7 days
                 signingCredentials: credentials
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return new JwtSecurityTokenHandler().WriteToken(token); // converts token object into jwt string
         }
 
-        private string HashPassword(string password)
+        private string HashPassword(string password) // method to hash the password
         {
-            using (var sha256 = SHA256.Create())
+            using (var sha256 = SHA256.Create()) // we use SHA-256 for encryption
             {
                 var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
                 return Convert.ToBase64String(hashedBytes);
