@@ -1,0 +1,195 @@
+[33mcommit 277381db18787a920890cf9ecc71a940f2f23a8f[m[33m ([m[1;36mHEAD -> [m[1;32mAli´s-Branch[m[33m, [m[1;31morigin/Ali´s-Branch[m[33m)[m
+Merge: fc65351 031c5a5
+Author: Ali <ali98a77@gmail.com>
+Date:   Sat Nov 8 23:51:11 2025 +0100
+
+    Merge branch 'Ali´s-Branch' of https://github.com/Sm-Oslomet/QuizApp into Ali´s-Branch
+
+[33mcommit fc653516261263706f86ea8dd7713ce4fd088463[m
+Author: Ali <ali98a77@gmail.com>
+Date:   Sat Nov 8 23:48:24 2025 +0100
+
+    Fix quiz scoring and JSON parse error handling
+
+[33mcommit 031c5a5ccafe1a134dab438023f64c9ce04e5ec3[m
+Merge: 23a5a37 701c2fc
+Author: Sm-Oslomet <144127779+Sm-Oslomet@users.noreply.github.com>
+Date:   Mon Nov 3 00:32:18 2025 +0100
+
+    Merge pull request #8 from Sm-Oslomet/TestBranch
+    
+    pull
+
+[33mcommit 701c2fc2e88a40cdeffcd6e6f26f6c161770f6af[m
+Merge: 67c5c4f 23a5a37
+Author: Sm-Oslomet <144127779+Sm-Oslomet@users.noreply.github.com>
+Date:   Mon Nov 3 00:32:09 2025 +0100
+
+    Merge branch 'Ali´s-Branch' into TestBranch
+
+[33mcommit 23a5a37618b924beeaa43df4e52dc05de4e2e960[m
+Author: Ali <ali98a77@gmail.com>
+Date:   Sun Nov 2 16:27:56 2025 +0100
+
+    Fix Api Call
+
+[33mcommit 67c5c4fed6c185f3de412f19c24fae01d34695b6[m
+Merge: fb30954 840358e
+Author: Sm-Oslomet <144127779+Sm-Oslomet@users.noreply.github.com>
+Date:   Fri Oct 31 03:41:24 2025 +0100
+
+    Merge pull request #7 from Sm-Oslomet/Sm-patch
+    
+    Created models with join tables
+
+[33mcommit fb30954d6d83d7eb30d078ffd2e9c3a0b0b9b1df[m
+Merge: e361963 299142e
+Author: Sm-Oslomet <144127779+Sm-Oslomet@users.noreply.github.com>
+Date:   Thu Oct 30 21:24:56 2025 +0100
+
+    Merge pull request #6 from Sm-Oslomet/fronted-logic
+    
+    test
+
+[33mcommit e36196373277e727f9465f96a5374c9574c8d21c[m
+Author: zohaerbest <s374925@oslomet.no>
+Date:   Thu Oct 30 17:00:42 2025 +0500
+
+    Updated Home page design to new aesthetic layout
+
+[33mcommit 1ee3a4f823d9c890dfbae6311cefb9277ce09597[m
+Author: Fatema Alam <alamtoma@gmail.com>
+Date:   Thu Oct 30 12:40:28 2025 +0100
+
+    Fatema test commit for contributor visibility
+
+[33mcommit 299142eaf2df565d204d711db3aa9440253cc08f[m
+Author: Fatema Alam <alamtoma@gmail.com>
+Date:   Thu Oct 30 12:29:10 2025 +0100
+
+    test
+
+[33mcommit 5b5e26c1cfb1a7fe8b0efe34e97e629b27c06f28[m
+Author: zohaerbest <s374925@oslomet.no>
+Date:   Thu Oct 30 14:31:54 2025 +0500
+
+    quick update
+
+[33mcommit 840358eac2415af99d4cc1498f61915e21afcc19[m
+Author: SM-Oslomet <samez5302@oslomet.no>
+Date:   Thu Oct 30 02:30:02 2025 +0100
+
+    Created models with join tables
+
+[33mcommit fb047c9b2e8b4666524d553a64a607f382943630[m
+Merge: d11f974 f3cc31a
+Author: Sm-Oslomet <144127779+Sm-Oslomet@users.noreply.github.com>
+Date:   Tue Oct 28 23:00:37 2025 +0100
+
+    Merge pull request #5 from Sm-Oslomet/fronted-logic
+    
+    loging og  registering
+
+[33mcommit f3cc31a4c2d7306606a3236c9c906625cc6c7e75[m
+Author: alamt <alamt@FATEMAALAM>
+Date:   Tue Oct 28 22:57:06 2025 +0100
+
+    loging og  registering
+
+[33mcommit d11f974088c4b33883677423f84fd6bb1bb82700[m
+Merge: 43b3acb 32a1a73
+Author: Sm-Oslomet <144127779+Sm-Oslomet@users.noreply.github.com>
+Date:   Tue Oct 28 18:41:04 2025 +0100
+
+    Merge pull request #4 from Sm-Oslomet/Sm-patch
+    
+    Added Models, removed test models
+
+[33mcommit 32a1a737361fdaeaa585ff4baa229a630bb28e08[m
+Merge: fb9ff7e 43b3acb
+Author: Sm-Oslomet <144127779+Sm-Oslomet@users.noreply.github.com>
+Date:   Tue Oct 28 18:40:54 2025 +0100
+
+    Merge branch 'master' into Sm-patch
+
+[33mcommit 43b3acbd74552da82ae45a8d52eba7294c1e8153[m
+Merge: 315d133 9d69db7
+Author: Sm-Oslomet <144127779+Sm-Oslomet@users.noreply.github.com>
+Date:   Tue Oct 28 18:36:10 2025 +0100
+
+    Merge pull request #3 from Sm-Oslomet/Ali´s-Branch
+    
+    Ali´s branch
+
+[33mcommit 9d69db73b458cb1c9f84a35cf69c59197301a468[m
+Merge: 3c174f3 315d133
+Author: Sm-Oslomet <144127779+Sm-Oslomet@users.noreply.github.com>
+Date:   Tue Oct 28 18:36:00 2025 +0100
+
+    Merge branch 'master' into Ali´s-Branch
+
+[33mcommit fb9ff7e6140c2dd69dff8d507162f606eb463e15[m
+Author: SM-Oslomet <samez5302@oslomet.no>
+Date:   Tue Oct 28 18:34:44 2025 +0100
+
+    Added Models, removed test models
+
+[33mcommit 3c174f3912cf0544459e93eb4f0423c071f8574b[m
+Author: Ali <ali98a77@gmail.com>
+Date:   Mon Oct 27 21:14:59 2025 +0100
+
+    adding controllers and necessary files
+
+[33mcommit e78f5fb34d7dca66f8695d299ec97590364e9ac1[m
+Author: Ali <ali98a77@gmail.com>
+Date:   Mon Oct 27 21:05:22 2025 +0100
+
+    adding controllers and necessary files
+
+[33mcommit 315d133e7ac1f268c95b70bd6433eb2691bf74d7[m
+Merge: 26bf05e 68ea793
+Author: Sm-Oslomet <144127779+Sm-Oslomet@users.noreply.github.com>
+Date:   Mon Oct 27 20:16:49 2025 +0100
+
+    Merge pull request #2 from Sm-Oslomet/fronted-logic
+    
+    Fronted logic
+
+[33mcommit 68ea793a5d26e08f468728d5526693c953ac3fd5[m
+Author: alamt <alamt@FATEMAALAM>
+Date:   Mon Oct 27 19:06:57 2025 +0100
+
+    add logic to fetch and submit quiz
+
+[33mcommit 0bda0273e8730886cf86e122412e650761a654cc[m
+Author: alamt <alamt@FATEMAALAM>
+Date:   Sat Oct 25 23:20:40 2025 +0200
+
+    Implemented quiz creation, editing, playing, and deletion using localStorage
+
+[33mcommit 26bf05e71170d5f4e8c216133f74c443a0a15bbb[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmaster[m[33m)[m
+Merge: fc0df5a 481b049
+Author: Sm-Oslomet <144127779+Sm-Oslomet@users.noreply.github.com>
+Date:   Sat Oct 18 02:34:57 2025 +0200
+
+    Merge pull request #1 from Sm-Oslomet/fronten-f
+    
+    frontend react
+
+[33mcommit 481b049037e833d7495ca947068774f07a89e6e0[m[33m ([m[1;31morigin/fronten-f[m[33m)[m
+Author: alamt <alamt@FATEMAALAM>
+Date:   Thu Oct 16 20:31:46 2025 +0200
+
+    frontend react
+
+[33mcommit fc0df5ade7d3152bfc44a8687e5a0aad21160bc7[m
+Author: SM-Oslomet <samez5302@oslomet.no>
+Date:   Thu Oct 9 19:53:25 2025 +0200
+
+    Add project files.
+
+[33mcommit 0bfa723a2ceef4ea47b95983ba1552c93f38c00b[m
+Author: SM-Oslomet <samez5302@oslomet.no>
+Date:   Thu Oct 9 19:53:23 2025 +0200
+
+    Add .gitattributes and .gitignore.
