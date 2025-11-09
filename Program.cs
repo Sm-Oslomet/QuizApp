@@ -109,9 +109,6 @@ if (app.Environment.IsDevelopment())
 
 // Enable CORS *before* authorization
 app.UseCors("AllowReactApp");
-
-app.UseCors("AllowReactApp");
-
 app.UseAuthentication();
 app.UseAuthorization();
 

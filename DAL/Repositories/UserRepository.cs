@@ -46,12 +46,12 @@ namespace QuizApp.DAL.Repositories
         public async Task<bool>DeleteUserAsync(int userId)
         {
             var user = await GetUserByIdAsync(userId);
-            if (user == null)
+            if (user == null) 
             {
                 return false;
             }
 
-            _context.Remove(userId);
+            _context.Users.Remove(user);
             await _context.SaveChangesAsync();
             return true;
         }

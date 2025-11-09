@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { authService } from "../services/AuthService"; 
+import { authService } from "../services/authService"; 
 
 function Navbar() {
   const location = useLocation();

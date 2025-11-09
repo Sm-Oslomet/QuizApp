@@ -1,4 +1,4 @@
-import { quizService } from "../../api/quizService";
+import quizService from "../../api/quizService";
 
 export const QuizHandler = {
   async getAll() {

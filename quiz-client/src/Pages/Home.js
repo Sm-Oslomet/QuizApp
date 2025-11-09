@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { authService } from "../services/AuthService";
+import { authService } from "../services/authService";
 
 export default function Home() {
   const navigate = useNavigate();

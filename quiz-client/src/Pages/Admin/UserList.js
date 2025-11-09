@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { authService } from "../../services/AuthService";
+import { authService } from "../../services/authService";
 import AdminModal from "./AdminModal";
 
 export default function UserList({ users, deleteUser }) {

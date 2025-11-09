@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { authService } from "../../services/AuthService";
+import { authService } from "../../services/authService";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 
 export default function Login() {
@@ -23,27 +23,24 @@ export default function Login() {
   // If already logged in, show logout inside login page
   const currentUser = authService.getCurrentUser();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError("");
+  // changed previous handleSubmit
 
-    try {
-      const loggedIn = authService.login({
+  const handleSubmit = async (e) => {
+     e.preventDefault();
+     setError("");
+     try{
+      const loggedIn = await authService.login({
         email: email.trim().toLowerCase(),
         password,
         remember,
       });
-
-         if (loggedIn.isAdmin) {
-      navigate("/admin"); 
-    } else {
-      navigate("/"); 
-    }
-
-  } catch (err) {
-    setError(err.message || "Login failed");
-  }
-};
+      if(loggedIn.role == "admin"){
+        navigate("/admin");
+      }
+      else {navigate("/");}
+     }
+     catch (err) {setError(err.message||"Login failed!");}
+  };
 
   const handleLogout = () => {
     authService.logout();

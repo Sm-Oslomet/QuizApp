@@ -56,6 +56,8 @@ namespace QuizApp.Controllers
             return Ok(quizDtos); // returns json of a user's quizzes
         }
 
+        [AllowAnonymous] // since the home page has a button for anonymous quiz taking
+        //  we need to make this an option because our controller requires Authorization
         [HttpGet("{id}")] // a GET methot based on a Quiz id
         public async Task<IActionResult> GetQuiz(int id)
         {
@@ -111,6 +113,7 @@ namespace QuizApp.Controllers
             };
 
             await _quizRepo.CreateQuizAsync(quiz);
+            await _quizRepo.SaveChangesAsync();
 
             // Return DTO instead of EF entity
             var quizDto = new QuizDto // we then map the quiz to a quizdto 
@@ -219,7 +222,7 @@ namespace QuizApp.Controllers
             };
 
             await _quizAttemptRepo.AddAttemptAsync(attempt); // we use quizattempt repo to save attempts
-
+            await _quizAttemptRepo.SaveChangesAsync();
             return Ok(new // returns info on the attempt, with score and percentage correct
             {
                 attemptId = attempt.QuizAttemptId,

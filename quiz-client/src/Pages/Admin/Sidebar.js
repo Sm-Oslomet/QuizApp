@@ -1,5 +1,5 @@
 import React from "react";
-import { authService } from "../../services/AuthService";
+import { authService } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 
 export default function Sidebar({ active, onChange }) {

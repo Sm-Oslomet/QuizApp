@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { authService } from "../../services/AuthService";
+import { authService } from "../../services/authService";
 import { useNavigate, Link } from "react-router-dom";
 
 export default function Register() {
@@ -14,7 +14,7 @@ export default function Register() {
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setWarn("");
@@ -28,20 +28,16 @@ export default function Register() {
       setWarn("Passwords do not match.");
       return;
     }
-
     try {
-      authService.register({
+      await authService.register({
         name: name.trim(),
         email: email.trim().toLowerCase(),
         password,
         remember,
       });
-
-      navigate("/verify-email");
-    } catch (err) {
-      setError(err.message || "Registration failed");
-    }
-  };
+      navigate("/");
+    } catch (err) { setError(err.message || "Registration failed");}
+  }
 
   return (
     <div className="container py-5">

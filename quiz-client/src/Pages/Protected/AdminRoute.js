@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { authService } from "../../services/AuthService";
+import { authService } from "../../services/authService";
 
 export default function AdminRoute({ children }) {
   const user = authService.getCurrentUser();

@@ -1,8 +1,8 @@
 const USERS_KEY = "users";
 const CURRENT_USER_KEY = "currentUser";
 
-// Helpers
-
+// Helpers ---- Have been commented out since instead of using helpers with localStorage we want to start using the API
+/*
 function loadUsers() {
   try {
     return JSON.parse(localStorage.getItem(USERS_KEY)) || [];
@@ -27,175 +27,73 @@ function saveCurrentUser(user, remember) {
     localStorage.removeItem(CURRENT_USER_KEY);
   }
 }
+*/
+
 
 // AUTH SERVICE
+const API_BASE="http://localhost:5251/api";
 
 export const authService = {
 
   // REGISTER --------------------
-  register({ name, email, password, remember }) {
-    const users = loadUsers();
-    const exists = users.find((u) => u.email === email);
+  async register({ name, email, password, remember }) {
+    const res = await fetch(`${API_BASE}/account/register`,{
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ username: email, password})
+    });
 
-    if (exists) throw new Error("Email is already registered");
-const newUser = {
-      id: Date.now().toString(),
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      password,
-      emailVerified: false,
-      role: "user",           
-    };
-
-    users.push(newUser);
-    saveUsers(users);
-
-    saveCurrentUser(newUser, remember);
-    return newUser;
-  },
-
-  // LOGIN -------------
-  login({ email, password, remember }) {
-
-    // Enkel admin-login
-    if (email.toLowerCase() === "admin@quiz.com" && password === "admin123") {
-      const admin = {
-        id: "admin",
-        name: "Admin",
-        email: "admin@quiz.com",
-        isAdmin: true,
-        emailVerified: true,
-      };
-
-      saveCurrentUser(admin, remember);
-      return admin;
+    if (!res.ok){
+      const err = await res.json().catch(() => ({}));
+      throw new Error("Registration failed");
     }
 
-    const users = loadUsers();
-    const found = users.find(
-      (u) => u.email === email.trim().toLowerCase() && u.password === password
+    return await this.login({email, password, remember}); // auto logins user after registration instead of taking you to login page
+  },
+  async login({email,password,remember}){
+    const res = await fetch(`${API_BASE}/account/login`,{
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({username: email, password})
+    });
+    if(!res.ok){
+      throw new Error("Incorrect email or password!");
+    }
+
+    const data = await res.json();
+
+    if (remember){
+      localStorage.setItem("authToken", data.token);
+      sessionStorage.removeItem("authToken");
+    } else {
+      sessionStorage.setItem("authToken", data.token);
+      localStorage.removeItem("authToken");
+    }
+
+    return this.getCurrentUser();
+  },
+
+  logout(){
+    localStorage.removeItem("authToken");
+    sessionStorage.removeItem("authToken");
+  },
+
+  getToken(){
+    return (
+      sessionStorage.getItem("authToken")||
+      localStorage.getItem("authToken")
     );
-
-    if (!found) throw new Error("Wrong email or password");
-
-    saveCurrentUser(found, remember);
-    return found;
   },
 
-  // GUEST LOGIN 
-  guestLogin() {
-    const guestUser = {
-      id: "guest",
-      name: "Guest",
-      guest: true,
-      isAdmin: false,
-      emailVerified: true,
+
+  getCurrentUser(){
+    const token = this.getToken();
+    if(!token) return null;
+
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return {
+      id: payload.nameid || payload.sub,
+      username: payload.unique_name || payload.name,
     };
-
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(guestUser));
-    sessionStorage.removeItem(CURRENT_USER_KEY);
-
-    return guestUser;
-  },
-
-  // EMAIL VERIFY ----
-  verifyEmail() {
-    const current = this.getCurrentUser();
-    if (!current) throw new Error("Not logged in");
-
-    const users = loadUsers();
-    const user = users.find((u) => u.id === current.id);
-
-    if (user) {
-      user.emailVerified = true;
-      saveUsers(users);
-    }
-
-    current.emailVerified = true;
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(current));
-
-    return true;
-  },
-
-  // RESET PASSWORD ---------
-  resetPassword(email, newPass) {
-    const users = loadUsers();
-    const user = users.find((u) => u.email === email);
-
-    if (!user) throw new Error("No account with that email");
-
-    user.password = newPass;
-    saveUsers(users);
-    return true;
-  },
-
-  // GET CURRENT USER -------
-  getCurrentUser() {
-    const stored =
-      sessionStorage.getItem(CURRENT_USER_KEY) ||
-      localStorage.getItem(CURRENT_USER_KEY);
-
-    return stored ? JSON.parse(stored) : null;
-  },
-
-  // LOGOUT ---------
-  logout() {
-    sessionStorage.removeItem(CURRENT_USER_KEY);
-    localStorage.removeItem(CURRENT_USER_KEY);
-  },
-
-   // ADMIN: deactivate user
-  deactivateUser(id) {
-    const users = loadUsers();
-    const user = users.find((u) => u.id === id);
-    if (!user) return false;
-
-    user.disabled = true;
-    saveUsers(users);
-    return true;
-  },
-
-  // ADMIN: activate user
-  activateUser(id) {
-    const users = loadUsers();
-    const user = users.find((u) => u.id === id);
-    if (!user) return false;
-
-    user.disabled = false;
-    saveUsers(users);
-    return true;
-  },
-
-  // ADMIN: promote to admin
-  promoteToAdmin(id) {
-    const users = loadUsers();
-    const user = users.find((u) => u.id === id);
-    if (!user) return false;
-
-    user.role = "admin";
-    saveUsers(users);
-    return true;
-  },
-
-  // ADMIN: reset password
-  adminResetPassword(id, newPassword) {
-    const users = loadUsers();
-    const user = users.find((u) => u.id === id);
-    if (!user) return false;
-
-    user.password = newPassword;
-    saveUsers(users);
-    return true;
-  },
-
-  // ADMIN: verify user email
-  adminVerifyUser(id) {
-    const users = loadUsers();
-    const user = users.find((u) => u.id === id);
-    if (!user) return false;
-
-    user.emailVerified = true;
-    saveUsers(users);
-    return true;
-  },
+  }
 };

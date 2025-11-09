@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import quizService from "../../api/quizService";
+import {authService} from "../../services/authService";
 
 function QuizPlay() {
   const { id } = useParams();
@@ -7,25 +9,56 @@ function QuizPlay() {
   const [quiz, setQuiz] = useState(null);
   const [current, setCurrent] = useState(0);
   const [score, setScore] = useState(0);
-  const [selected, setSelected] = useState(null);
+  const [selectionMap, setSelectionMap] = useState({});
+  const [selectedAnswerId, setSelectedAnswerId] = useState(null);
   const [feedbackText, setFeedbackText] = useState("");
   const [wasCorrect, setWasCorrect] = useState(null); // true / false / null
+  const [loading, setLoading] = useState(true);
 
   // last riktig quiz fra localStorage
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("quizzes") || "[]");
-    const found = saved.find((q) => q.id === id);
-    if (found) {
-      setQuiz(found);
-    } else {
-      alert("Quiz not found!");
-      navigate("/select");
+    const currentUser = authService.getCurrentUser();
+    if(!currentUser){
+      navigate("/login");
+      return;
     }
-  }, [id, navigate]);
+    const getQuiz = async () => {
+      try {
+        setLoading(true);
+        const data = await quizService.getById(id);
 
-  if (!quiz) {
-    return <p className="text-center mt-5">Loading quiz...</p>;
-  }
+        const mapped = {
+          id: data.quizId || data.QuizId || data.QuizID || id,
+          title: data.title || data.Title,
+          questions: (data.questions || data.Questions || []).map((q)=> ({
+            questionId: q.questionId || q.QuestionId,
+            text: q.questionText || q.QuestionText,
+            answers: (q.answers || q.Answers ||[]).map((a)=> ({
+              answerId: a.answerId || a.answerId,
+              text: a.answerText || a.AnswerText,
+
+              iscorrect: a.isCorrect ?? a.IsCorrect ?? false
+            }))
+          }))
+        };
+        setQuiz(mapped);
+      } catch (err) {alert("Failed to load quiz");
+        navigate("/select");
+      } finally {setLoading(false);}
+    };
+
+    
+    getQuiz();
+  }, [id, navigate]);
+  useEffect(()=> {
+    if(selectedAnswerId != null){
+      const qid = question.questionId;
+      setSelectionMap((m)=> ({ ...m, [qid]: selectedAnswerId}));
+      }
+    }, [selectedAnswerId, quiz, current]);
+  if(loading)return <p className="text-center mt-5">Loading quiz</p>;
+  if(!quiz) return<p className="text-center m-5">Quiz not found</p>;
+
 
   const question = quiz.questions[current];
   const livePercentage = Math.round(
@@ -33,44 +66,57 @@ function QuizPlay() {
   );
 
   // Når bruker klikker på et svar
-  const handleAnswer = (option) => {
-    if (selected) return; // ikke la bruker velge på nytt
+  const handleAnswer = (answer) => {
+    if (selectedAnswerId) return; // ikke la bruker velge på nytt
 
-    setSelected(option);
+    setSelectedAnswerId(answer.answerId);
+    setSelectionMap((m) => ({...m, [question.questionId]: answer.answerId}));
 
-    if (option === question.correctAnswer) {
-      setScore((prev) => prev + 1);
-      setFeedbackText("✅ Correct!");
+    const immediatelyCorrect = answer.isCorrect;
+
+    if(immediatelyCorrect) {
+      setScore((prev)=> prev+1);
+      setFeedbackText("Correct!");
       setWasCorrect(true);
-    } else {
-      setFeedbackText(
-        `❌ Wrong! Correct answer: ${question.correctAnswer}`
-      );
+    }else {
+      setFeedbackText("Selected");
+      setFeedbackText("Choice recorded");
       setWasCorrect(false);
     }
   };
+    const handleNextOrFinish = async () => {
+      const lastIndex = quiz.questions.length - 1;
+      if(current <lastIndex) {
+        setCurrent((prev)=> prev+1);
+        setSelectedAnswerId(null);
+        setFeedbackText("");
+        setWasCorrect(null);
+      } else {
+        const userAnswers = quiz.questions.map((q)=> ({
+          questionId: q.questionId,
+          answerId: selectionMap[q.questionId] || 0
+        }));
 
-  // Neste spørsmål / eller ferdig
-  const handleNext = () => {
-    const lastIndex = quiz.questions.length - 1;
+        try {
+          const attemptPayload = {
+            quizId: parseInt(quiz.id, 10),
+            userAnswers
+          };
 
-    if (current < lastIndex) {
-      // gå til neste spørsmål
-      setCurrent((prev) => prev + 1);
-      setSelected(null);
-      setFeedbackText("");
-      setWasCorrect(null);
-    } else {
-      // ferdig -> send til resultatside
-      navigate(`/result/${quiz.id}`, {
-        state: {
-          title: quiz.title,
-          totalQuestions: quiz.questions.length,
-          score: score,
-        },
-      });
+          const res = await quizService.submit(attemptPayload);
+
+          navigate(`/result/${res.attemptId}`,{
+            state: {
+              title: quiz.title,
+              totalQuestions: res.totalQuestions || res.totalQuestions,
+              score: res.score,
+              percentage: res.percentage
+            }
+          });
+        } catch (err){ alert("Failed to submit attempt");
+        }
+      }
     }
-  };
 
   return (
     <div className="container py-5">
@@ -92,20 +138,20 @@ function QuizPlay() {
         <p className="fw-bold">{question.text}</p>
 
         <div className="list-group">
-          {question.options.map((option, i) => {
+          {question.answers.map((option, i) => {
             let buttonClass =
               "list-group-item list-group-item-action";
 
-            if (selected) {
-              if (option === question.correctAnswer) {
-                // riktig svar vises grønn
-                buttonClass += " list-group-item-success";
-              } else if (option === selected) {
-                // feil valgt → rød
-                buttonClass += " list-group-item-danger";
+            const selectedForThisQuestion = selectionMap[question.questionId];
+
+            if(selectedForThisQuestion) {
+              if(option.answerId === selectedForThisQuestion){
+
+                buttonClass += option.isCorrect
+                  ? " list-group-item-success"
+                  : " list-group-item-danger";
               } else {
-                // alle andre bli grå
-                buttonClass += " disabled opacity-50";
+                buttonClass += "disabled opacity-50";
               }
             }
 
@@ -113,10 +159,22 @@ function QuizPlay() {
               <button
                 key={i}
                 className={buttonClass}
-                onClick={() => handleAnswer(option)}
-                disabled={!!selected}
+                onClick={ () => {
+                  setSelectedAnswerId(option.answerId);
+                  setSelectionMap((m)=> ({ ...m, [question.questionId]: option.answerId}));
+                  if (option.isCorrect){
+                    setScore((s)=> s+1);
+                    setFeedbackText("Correct!");
+                    setWasCorrect(true);
+                  } else {
+                    setFeedbackText("Choice recorded");
+                    setWasCorrect(false);
+                  }
+                }}
+                onClickCapture={()=> handleAnswer(option)}
+                disabled={!!selectionMap[question.questionId]}
               >
-                {option}
+                {option.text}
               </button>
             );
           })}
@@ -134,11 +192,11 @@ function QuizPlay() {
         )}
 
         {/* Neste-knapp vises bare etter svar */}
-        {selected && (
+        {selectionMap[question.questionId] && (
           <div className="text-center mt-3">
             <button
               className="btn btn-primary"
-              onClick={handleNext}
+              onClick={handleNextOrFinish}
             >
               {current + 1 < quiz.questions.length
                 ? "➡️ Next Question"

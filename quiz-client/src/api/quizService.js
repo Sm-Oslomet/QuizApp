@@ -1,11 +1,93 @@
 import $ from "jquery";
+import { authService } from "../services/authService";
 
-const API_URL = "http://localhost:5000/api/quizzes";
-const USE_API = false; // Endre til true når du vil bruke server (API)
+const API_URL = "http://localhost:5251/api/quiz";
+
+function getAuthHeader(){
+  const token = authService.getToken();
+  return token ? { Authorization: `Bearer ${token}`} : {};
+}
+
+const quizService = {
+  async getAll(){
+    const res = await fetch(API_URL, {
+      method: "GET",
+      headers: {
+        "Content-Type" : "application/json",
+        ...getAuthHeader(),
+      },
+    });
+
+    if(!res.ok) throw new Error("Failed to get quizzes");
+    return await res.json();
+  },
+
+  async getById(id){
+    const res = await fetch(`${API_URL}/${id}`, {
+      method: "GET",
+      headers:{
+        "Content-Type" : "application/json",
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!res.ok) throw new Error("Failed to get quiz");
+    return await res.json();
+  },
+
+  async create(quiz){
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type" : "application/json",
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(quiz),
+    });
+    if(!res.ok) throw new Error("Failed to create quiz");
+  },
+
+  async update(id, quiz){
+    const res = await fetch(`${API_URL}/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(quiz),
+    });
+
+    if(!res.ok) throw new Error("Failed to update quiz");
+  },
+
+  async remove(id){
+    const res = await fetch(`${API_URL}/${id}`,{
+      method: "DELETE",
+      headers: {
+        ...getAuthHeader(),
+      },
+    });
+    if(!res.ok) throw new Error("Failed to delete quiz");
+  },
+
+  async submit(attempt){
+    const res = await fetch(`${API_URL}/submit`, {
+      method: "POST",
+      headers: {
+        "Content-Type" : "application/json",
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(attempt),
+    });
+    if(!res.ok) throw new Error("Failed to submit attempt");
+    return await res.json();
+  },
+};
+export default quizService;
 
 
 // API mode (AJAX)
-
+/*
 async function apiGetAll() {
   return $.ajax({ url: API_URL, type: "GET" });
 }
@@ -77,3 +159,4 @@ export const quizService = {
   update: USE_API ? apiUpdate : lsUpdate,
   remove: USE_API ? apiDelete : lsDelete,
 };
+*/
