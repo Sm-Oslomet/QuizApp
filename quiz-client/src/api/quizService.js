@@ -57,7 +57,17 @@ const quizService = {
       body: JSON.stringify(quiz),
     });
 
-    if(!res.ok) throw new Error("Failed to update quiz");
+    if(!res.ok) {
+      const errorText = await res.text();
+      let message = "Failed to update quiz";
+      try {
+        const data = JSON.parse(errorText);
+        message = data.message || message;
+      } catch {
+        message = errorText || message;
+      }
+      throw new Error(message);
+    }
   },
 
   async remove(id){
@@ -67,7 +77,18 @@ const quizService = {
         ...getAuthHeader(),
       },
     });
-    if(!res.ok) throw new Error("Failed to delete quiz");
+    if(!res.ok) {
+      const errorText = await res.text();
+      let message = "Failed to delete quiz";
+      try {
+        const data = JSON.parse(errorText);
+        message = data.message || message;
+      } catch {
+        message = errorText || message;
+      }
+      throw new Error(message)
+    }
+    return await res.json().catch(() => ({}));
   },
 
   async submit(attempt){

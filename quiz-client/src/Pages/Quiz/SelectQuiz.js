@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authService } from "../../services/authService";
-import { QuizHandler } from "./QuizHandler"; 
+import quizService from "../../api/quizService";
 
 function SelectQuiz() {
   const navigate = useNavigate();
@@ -16,11 +15,17 @@ function SelectQuiz() {
   async function loadQuizzes() {
     setLoading(true);
     try {
-      let all = await QuizHandler.getAll();
+      let all = await quizService.getAll();
 
       // Hvis ingen quizer finnes ennå, ikke last eksempler automatisk her,
       // bare vis "No quizzes found" skjermen. (Dette matcher koden din.)
-      setQuizzes(all);
+      const mapped = all.map((q)=> ({
+        id: q.quizId || q.QuizId || q.id,
+        title: q.title || q.Title,
+        description: q.description || q.Description || "",
+        questions: q.questions || q.Questions || []
+      }));
+      setQuizzes(mapped);
     } catch (err) {
       console.error("Failed to load quizzes:", err);
       alert("Failed to load quizzes.");
@@ -33,7 +38,7 @@ function SelectQuiz() {
     if (!window.confirm("Delete this quiz?")) return;
 
     try {
-      await QuizHandler.delete(id);
+      await quizService.remove(id);
       setQuizzes((prev) => prev.filter((q) => q.id !== id));
     } catch (err) {
       console.error("Failed to delete quiz:", err);
@@ -41,9 +46,10 @@ function SelectQuiz() {
     }
   }
 
+  /* we comment out load examples since it uses localstorage, which is no longer needed
   async function handleLoadExamples() {
     try {
-      await QuizHandler.loadExamples();
+      await quizService.loadExamples();
       alert("Example quizzes added!");
       // reload list
       loadQuizzes();
@@ -52,7 +58,7 @@ function SelectQuiz() {
       alert("Failed to load example quizzes.");
     }
   }
-
+*/
   if (loading) {
     return <p className="text-center mt-5">Loading quizzes...</p>;
   }
@@ -70,12 +76,6 @@ function SelectQuiz() {
               onClick={() => navigate("/create")}
             >
               Create New Quiz
-            </button>
-            <button
-              className="btn btn-outline-primary"
-              onClick={handleLoadExamples}
-            >
-              Example Quizzes
             </button>
           </div>
         </div>
@@ -129,13 +129,6 @@ function SelectQuiz() {
               onClick={() => navigate("/create")}
             >
               Create New Quiz
-            </button>
-
-            <button
-              className="btn btn-outline-primary"
-              onClick={handleLoadExamples}
-            >
-              Example Quizzes
             </button>
           </div>
         </>

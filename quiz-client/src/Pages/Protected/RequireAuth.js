@@ -6,7 +6,7 @@ export default function RequireAuth({ children }) {
   const user = authService.getCurrentUser();
 
   if (!user) return <Navigate to="/login" replace />;
-  if (!user.emailVerified) return <Navigate to="/verify-email" replace />;
+  //if (!user.emailVerified) return <Navigate to="/verify-email" replace />;
 
   return children;
 }

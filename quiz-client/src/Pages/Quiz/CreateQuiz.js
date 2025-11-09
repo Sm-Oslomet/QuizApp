@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { quizService } from "../../api/quizService";
+import quizService from "../../api/quizService";
 
 function CreateQuiz() {
   const navigate = useNavigate();
@@ -54,16 +54,23 @@ function CreateQuiz() {
     const newQuiz = {
       title: title.trim(),
       description: description.trim(),
-      questions,
+      questions: questions.map((q) => ({
+        questionText: q.text,
+        answers: q.options.map((opt)=> ({
+          answerText:opt,
+          isCorrect: opt === q.correctAnswer,
+        })),
+      })),
     };
 
-
-
-   const saved = JSON.parse(localStorage.getItem("quizzes") || "[]");
-  localStorage.setItem("quizzes", JSON.stringify([...saved, newQuiz]));
-
-  alert("Quiz saved locally!");
-  navigate("/select");
+    try {
+      await quizService.create(newQuiz);
+      alert("Quiz saved to database!");
+      navigate("/select");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save quiz to database");
+    }
   };
 
   return (

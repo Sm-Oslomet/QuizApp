@@ -1,32 +1,36 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import quizService from "../../api/quizService";
 
 function EditQuiz() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [quiz, setQuiz] = useState(null);
 
-  // Hent eksisterende quiz fra localStorage
-  React.useEffect(() => {
-    const all = JSON.parse(localStorage.getItem("quizzes") || "[]");
-    const found = all.find((q) => q.id === id);
-    if (!found) {
-      alert("Quiz not found.");
-      navigate("/select");
-      return;
+  // henter quiz fra database ved hjelp av api, byttet logikk fra storage henting
+  useEffect(() => {
+    async function loadQuiz(){
+      try {
+        const data = await quizService.getById(id);
+
+        const mapped = {
+          id: data.quizId || data.QuizId || id,
+          title: data.title || data.Title || "",
+          description: data.description || data.Description || "",
+          questions: (data.questions || data.Questions || []).map((q)=> ({
+            text: q.questionText || q.QuestionText || "",
+            options: (q.answers || q.Answers || []).map(a => a.answerText || a.AnswerText || ""),
+            correctAnswer:
+              (q.answers || q.Answers || []).find(a => (a.isCorrect ?? a.IsCorrect) === true)?.answerText || ""
+          }))
+        };
+        setQuiz(mapped);
+      } catch (err) {
+        alert("Failed to load quiz");
+        navigate("/select");
+      }
     }
-
-    // Sørg for at alle spørsmål har 4 alternativer
-    const normalized = {
-      ...found,
-      questions: found.questions.map((q) => ({
-        ...q,
-        options: [...q.options, "", "", "", ""].slice(0, 4),
-        correctAnswer: q.correctAnswer || "",
-      })),
-    };
-
-    setQuiz(normalized);
+    loadQuiz();
   }, [id, navigate]);
 
   // Finn hvilket alternativ som er riktig i hvert spørsmål
@@ -98,7 +102,7 @@ function EditQuiz() {
   };
 
   // Lagre endringer
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!quiz.title.trim()) {
       alert("Please enter a title.");
       return;
@@ -126,17 +130,44 @@ function EditQuiz() {
       return;
     }
 
-    const all = JSON.parse(localStorage.getItem("quizzes") || "[]");
-    const index = all.findIndex((x) => x.id === cleaned.id);
-    if (index === -1) {
-      alert("Could not save: Quiz not found in storage.");
-      return;
-    }
+    try {
+      const payload = {
+        quizId: quiz.id,
+        title: cleaned.title,
+        description: cleaned.description,
+        questions: cleaned.questions.map((q) => ({
+          // FIXED: property name spelled correctly
+          questionText: q.text,
+          answers: q.options.map((opt) => ({
+            answerText: opt,
+            isCorrect: q.correctAnswer === opt
+          }))
+        }))
+      };
 
-    all[index] = cleaned;
-    localStorage.setItem("quizzes", JSON.stringify(all));
-    alert(" Quiz saved successfully!");
-    navigate("/select");
+        // when a user attemps to update a quiz that has already been attempted, we get an 
+        // error (to prevent conflicts with user data) and we want the user to know why an 
+        // edit does not work, we implement logic that gives user a message explaining why their edit does not work 
+      await quizService.update(quiz.id, payload);
+      alert("Quiz updated");
+      navigate("/select");
+    } catch (err) {
+      console.error("Failed to update quiz", err);
+      
+      let msg = "Failed to update quiz";
+      if(err.response){
+
+        msg = (await err.response.json())?.message || msg;
+      } else if (err.message){
+        try {
+          const data = JSON.parse(err.message);
+          msg = data.message || msg;
+        } catch {
+          msg = err.message || msg;
+        }
+      }
+      alert(msg);
+    }
   };
 
   if (!quiz) return <p className="text-center mt-5">Loading quiz...</p>;
@@ -239,3 +270,6 @@ function EditQuiz() {
 }
 
 export default EditQuiz;
+
+// This entire code, after writing it and changing it, was pasted into an ai editor to check for typos and other smaller mistakes
+// which returned the same code with bugs fixed. The logic, comments and code as a whole was unchanged, only the bugs were changes
