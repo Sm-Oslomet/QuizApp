@@ -57,3 +57,16 @@ Users can create quizzes, play quizzes, edit them, and submit attempts that are 
 - Repository pattern
 - DTO models
 - Authentication middleware
+  
+---
+![Welcome Screen](./Images/WelcomePage.png)
+![Login Screen](./Images/Login.png)
+![Select Screen](./Images/SelectQuiz.png)
+![Create Screen](./Images/CreateQuiz.png)
+![Edit Screen](./images/EditQuiz.png)
+![Play Screen](./Images/PlayQuiz.png)
+![Result Screen](./Images/Score.png)
+
+
+
+
