@@ -3,8 +3,8 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Layout components
-import Navbar from "./compenents/Navbar";
-import Footer from "./compenents/Footer";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 
 // Public pages
 import Home from "./Pages/Home";
