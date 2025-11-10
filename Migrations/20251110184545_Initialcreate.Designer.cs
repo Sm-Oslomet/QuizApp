@@ -12,8 +12,8 @@ using QuizApp.DAL;
 namespace QuizApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251110023210_AddIsAdminToUser")]
-    partial class AddIsAdminToUser
+    [Migration("20251110184545_Initialcreate")]
+    partial class Initialcreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
