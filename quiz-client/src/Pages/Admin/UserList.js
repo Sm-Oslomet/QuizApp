@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { authService } from "../../services/authService";
-import AdminModal from "./AdminModal";
+import AdminModel from "./AdminModel";
 
 export default function UserList({ users, deleteUser }) {
   const [selectedUser, setSelectedUser] = useState(null);
@@ -63,7 +63,7 @@ export default function UserList({ users, deleteUser }) {
                       <button
                         className="btn btn-success btn-sm"
                         data-bs-toggle="modal"
-                        data-bs-target="#adminModal"
+                        data-bs-target="#adminModel"
                         onClick={() => openModal(u, "verify")}
                       >
                         Verify
@@ -75,7 +75,7 @@ export default function UserList({ users, deleteUser }) {
                       <button
                         className="btn btn-warning btn-sm"
                         data-bs-toggle="modal"
-                        data-bs-target="#adminModal"
+                        data-bs-target="#adminModel"
                         onClick={() => openModal(u, u.disabled ? "activate" : "deactivate")}
                       >
                         {u.disabled ? "Activate" : "Deactivate"}
@@ -87,7 +87,7 @@ export default function UserList({ users, deleteUser }) {
                       <button
                         className="btn btn-info btn-sm"
                         data-bs-toggle="modal"
-                        data-bs-target="#adminModal"
+                        data-bs-target="#adminModel"
                         onClick={() => openModal(u, "promote")}
                       >
                         Make Admin
@@ -109,7 +109,7 @@ export default function UserList({ users, deleteUser }) {
                       <button
                         className="btn btn-danger btn-sm"
                         data-bs-toggle="modal"
-                        data-bs-target="#adminModal"
+                        data-bs-target="#adminModel"
                         onClick={() => openModal(u, "delete")}
                       >
                         Delete
@@ -126,8 +126,8 @@ export default function UserList({ users, deleteUser }) {
       </div>
 
       {/* General confirm modal */}
-      <AdminModal
-        id="adminModal"
+      <AdminModel
+        id="adminModel"
         title={`Confirm ${modalAction}`}
         onConfirm={handleConfirm}
       >
@@ -138,7 +138,7 @@ export default function UserList({ users, deleteUser }) {
             <strong>{selectedUser.email}</strong>?
           </p>
         )}
-      </AdminModal>
+      </AdminModel>
 
       {/* Password reset modal */}
       <div className="modal fade" id="resetPassModal" tabIndex="-1">

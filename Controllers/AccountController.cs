@@ -88,6 +88,7 @@ namespace QuizApp.Controllers
             { // we encode claims into the jwt
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()), // user ID
                 new Claim(ClaimTypes.Name, user.Username), // username
+                new Claim(ClaimTypes.Role, user.IsAdming? "Admin" : "User"), // token will have the role admin if user is admin
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // unique token ID
             };
 

@@ -26,7 +26,7 @@ import AdminRoute from "./Pages/Protected/AdminRoute";
 import NotAuthorized from "./Pages/Protected/NotAuthorized";
 
 // Admin
-import Dashbord from "./Pages/Admin/Dashbord";
+import Dashboard from "./Pages/Admin/Dashboard";
 
 // CSS + Bootstrap
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -100,7 +100,7 @@ function App() {
                 path="/admin"
                 element={
                   <AdminRoute>
-                    <Dashbord />
+                    <Dashboard />
                   </AdminRoute>
                 }
               />

@@ -1,15 +1,12 @@
-import React from "react";
-import { Navigate } from "react-router-dom";
-import { authService } from "../../services/authService";
+import { Navigate, Outlet } from "react-router-dom";
 
-export default function AdminRoute({ children }) {
-  const user = authService.getCurrentUser();
+export default function AdminRoute() {
+  const token = localStorage.getItem("token"); // Even though we moved away from localstorage with our user and quiz data, we still us eit to store jwt tokens.
+  const role = localStorage.getItem("role");
 
-  // Hvis ikke innlogget eller ikke admin → nekt tilgang
-  if (!user || !user.isAdmin) {
-    return <Navigate to="/not-authorized" replace />;
-  }
 
-  // Admin → gi tilgang
-  return children;
+  if (!token) return <Navigate to="/login"/>;
+  if (role !== "Admin") return <Navigate to="/not-authorized" />;
+
+  return <Outlet />;
 }

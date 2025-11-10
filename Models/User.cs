@@ -14,7 +14,7 @@ namespace QuizApp.Models
         public string Username { get; set; } = string.Empty;
 
         public string PasswordHash { get; set; } = string.Empty;
-
+        public bool IsAdming { get; set; } = false;
         public ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
 
         // Since QuizAttempt links to UserAnswer, we can have User linked to QuizAttempt

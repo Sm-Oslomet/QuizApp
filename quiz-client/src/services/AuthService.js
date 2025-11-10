@@ -50,6 +50,8 @@ export const authService = {
 
     return await this.login({email, password, remember}); // auto logins user after registration instead of taking you to login page
   },
+
+
   async login({email,password,remember}){
     const res = await fetch(`${API_BASE}/account/login`,{
       method: "POST",
@@ -61,21 +63,34 @@ export const authService = {
     }
 
     const data = await res.json();
+    const token = data.token;
 
     if (remember){
-      localStorage.setItem("authToken", data.token);
+      localStorage.setItem("authToken", token);
       sessionStorage.removeItem("authToken");
     } else {
-      sessionStorage.setItem("authToken", data.token);
+      sessionStorage.setItem("authToken", token);
       localStorage.removeItem("authToken");
     }
 
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const role = payload.role || payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]; // changes done with the help of AI, in order to add the admin-user roles
+
+    if (remember) {
+      localStorage.setItem("userRole", role);
+      sessionStorage.removeItem("userRole");
+    } else {
+      sessionStorage.setItem("userRole", role);
+      localStorage.removeItem("userRole");
+    }
     return this.getCurrentUser();
   },
 
   logout(){
     localStorage.removeItem("authToken");
     sessionStorage.removeItem("authToken");
+    localStorage.removeItem("userRole");
+    sessionStorage.removeItem("userRole");
   },
 
   getToken(){
@@ -91,9 +106,15 @@ export const authService = {
     if(!token) return null;
 
     const payload = JSON.parse(atob(token.split(".")[1]));
+
+    const role = payload.role || payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "User";
     return {
       id: payload.nameid || payload.sub,
-      username: payload.unique_name || payload.name,
+      username: payload.unique_name || payload.name, role,
     };
+  },
+
+  getRole(){
+    return ( sessionStorage.getItem("userRole") || localStorage.getItem("userrole") || "User");
   }
 };

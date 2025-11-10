@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function AdminModal({ id, title, children, onConfirm }) {
+export default function AdminModel({ id, title, children, onConfirm }) {
   return (
     <div className="modal fade" id={id} tabIndex="-1">
       <div className="modal-dialog modal-dialog-centered">

@@ -7,6 +7,7 @@ namespace QuizApp.DAL.Interfaces
     {
         // opreations for a Quiz
         Task<IEnumerable<Quiz>> GetAllQuizzesByUserIdAsync(int userId);
+        Task<IEnumerable<Quiz>> GetAllQuizzesAsync();
         Task<Quiz?> GetQuizByIdAsync(int id);
         Task CreateQuizAsync(Quiz quiz); // we give each of the 3 operations their own unique names instead of all having "create" since that could lead to confusion when all 3 are called.
         Task UpdateQuizAsync(Quiz quiz);
