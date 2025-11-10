@@ -1,5 +1,5 @@
 import $ from "jquery";
-import { authService } from "../services/authService";
+import { authService } from "../services/authService.js";
 
 const API_URL = "http://localhost:5251/api/quiz";
 

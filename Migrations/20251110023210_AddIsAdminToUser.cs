@@ -11,7 +11,7 @@ namespace QuizApp.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<bool>(
-                name: "IsAdming",
+                name: "IsAdmin",
                 table: "Users",
                 type: "bit",
                 nullable: false,
@@ -22,7 +22,7 @@ namespace QuizApp.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "IsAdming",
+                name: "IsAdmin",
                 table: "Users");
         }
     }
