@@ -107,6 +107,7 @@ function QuizPlay() {
 
           navigate(`/result/${res.attemptId}`,{
             state: {
+              quizId: quiz.id,
               title: quiz.title,
               totalQuestions: res.totalQuestions || res.totalQuestions,
               score: res.score,

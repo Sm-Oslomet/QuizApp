@@ -148,6 +148,17 @@ namespace QuizApp.Controllers
             if (quiz == null || quiz.UserId != userId) // make sure quiz exists and belongs to current user
                 return NotFound(new { message = "Quiz not found" });
 
+
+            // We want to have an option to update q quiz, however, this would
+            // cause issues if a quiz had been attemped before. Because a user has
+            //  quiz history, they have their answers recorded. updating a quiz 
+            // that a user has completed affects their history aswell. Therefore 
+            // we do a check to see if a quiz has been taken, if it has, then it can't be updated
+            if (quiz.QuizAttempts != null && quiz.QuizAttempts.Any())
+            {
+                return BadRequest(new { message = "This quiz has attemps and can't be updated" });
+            }
+
             quiz.Title = dto.Title; // updatesfields
             quiz.Description = dto.Description;
 

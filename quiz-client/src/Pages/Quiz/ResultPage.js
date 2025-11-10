@@ -1,13 +1,14 @@
 import React, { useEffect } from "react";
 import { useLocation, useNavigate, useParams, Link } from "react-router-dom";
 
+
 function ResultPage() {
-  const { id } = useParams();
+  const { id: attemptId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
 
   // data som kom fra QuizPlay via navigate(..., { state: {...} })
-  const { title, totalQuestions, score } = location.state || {};
+  const { quizId, title, totalQuestions, score } = location.state || {};
 
   // hvis noen prøver å gå direkte til /result/:id uten state
   useEffect(() => {
@@ -62,7 +63,7 @@ function ResultPage() {
         {/* Spill denne quizen igjen */}
         <button
           className="btn btn-primary"
-          onClick={() => navigate(`/play/${id}`)}
+          onClick={() => navigate(`/play/${quizId}`)}
         >
           Try Again
         </button>

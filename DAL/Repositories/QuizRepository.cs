@@ -26,7 +26,8 @@ namespace QuizApp.DAL.Repositories
         {
             return await _context.Quizzes
             .Include(q => q.Questions)
-            .ThenInclude(a => a.Answers)
+                .ThenInclude(a => a.Answers)
+            .Include(q=> q.QuizAttempts)
             .FirstOrDefaultAsync(q => q.QuizId == id);
         }
         public async Task CreateQuizAsync(Quiz quiz)
@@ -35,22 +36,89 @@ namespace QuizApp.DAL.Repositories
         }
         public async Task UpdateQuizAsync(Quiz quiz)
         {
+
+            var existingQuestions = await _context.Questions
+                .Where(q => q.QuizId == quiz.QuizId)
+                .Include(q => q.Answers)
+                .ToListAsync();
+
+            var answerIdsToRemove = existingQuestions
+                .SelectMany(q => q.Answers)
+                .Select(a => a.AnswerId)
+                .ToList();
+
+
+            if (answerIdsToRemove.Any())
+            {
+                var userAnswersToRemove = await _context.UserAnswers
+                    .Where(ua => answerIdsToRemove.Contains(ua.AnswerId))
+                    .ToListAsync();
+
+
+                if (userAnswersToRemove.Any())
+                {
+                    _context.UserAnswers.RemoveRange(userAnswersToRemove);
+                }
+            }
+
+            foreach (var q in existingQuestions)
+            {
+                _context.Answers.RemoveRange(q.Answers);
+            }
+
+            _context.Questions.RemoveRange(existingQuestions);
+
+            await _context.SaveChangesAsync();
+
+            var tracked = _context.ChangeTracker.Entries<Quiz>()
+                .FirstOrDefault(e => e.Entity.QuizId == quiz.QuizId);
+            if (tracked != null)
+                tracked.State = EntityState.Detached;
+
+
             _context.Quizzes.Update(quiz);
             await SaveChangesAsync();
         }
         public async Task<bool> DeleteQuizAsync(int id)
         {
-            var quiz = await GetQuizByIdAsync(id);
+            var quiz = await _context.Quizzes
+                .Include(q => q.Questions)
+                    .ThenInclude(q => q.Answers)
+                .Include(q => q.QuizAttempts)
+                    .ThenInclude(a => a.UserAnswers)
+                .FirstOrDefaultAsync(q => q.QuizId == id);
+
             if (quiz == null)
-            {
                 return false;
+
+
+            var userAnswers = quiz.QuizAttempts
+                .SelectMany(a => a.UserAnswers)
+                .ToList();
+
+            if (userAnswers.Any())
+                _context.UserAnswers.RemoveRange(userAnswers);
+
+
+            if (quiz.QuizAttempts.Any())
+                _context.QuizAttempts.RemoveRange(quiz.QuizAttempts);
+
+            foreach (var question in quiz.Questions)
+            {
+                if (question.Answers.Any())
+                    _context.Answers.RemoveRange(question.Answers);
             }
+
+            if (quiz.Questions.Any())
+                _context.Questions.RemoveRange(quiz.Questions);
+
             _context.Quizzes.Remove(quiz);
-            await SaveChangesAsync();
+
+            await _context.SaveChangesAsync();
             return true;
         }
 
-        // Questions CRUD
+        // Questions CRUDs
 
         public async Task<IEnumerable<Question>> GetQuestionsByQuizIdAsync(int quizId)
         {
