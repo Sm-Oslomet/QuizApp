@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using QuizApp.DAL.Interfaces;
+using QuizApp.DTO.Auth;
 using QuizApp.DTOs.Auth;
 using QuizApp.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -77,6 +78,65 @@ namespace QuizApp.Controllers
             });
         }
 
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new { message = "Invadlig data" });
+
+            var user = await _userRepo.GetUserByUsernameAsync(request.Email);
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
+            user.IsVerified = true;
+            await _userRepo.SaveChangesAsync();
+
+            return Ok(new { message = "Email verified successfully" });
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new { message = "Invalid data" });
+
+            var user = await _userRepo.GetUserByUsernameAsync(request.Email);
+            if (user == null)
+                return BadRequest(new { message = "User does not exist" });
+
+
+            // when a password is reset, we also reset the token and increase the time until expiry
+            user.ResetToken = Guid.NewGuid().ToString();
+            user.ResetTokenExpiry = DateTime.UtcNow.AddMinutes(60);
+
+            await _userRepo.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Password reset token generated.",
+                token = user.ResetToken
+            });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassowrd([FromBody] ResetPasswordDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new { message = "Invalid data" });
+
+            var user = await _userRepo.GetUserByResetTokenAsync(request.Token);
+            if (user == null || user.ResetTokenExpiry < DateTime.UtcNow)
+                return BadRequest(new { message = "Invaldig or expired reset token" });
+
+            user.PasswordHash = HashPassword(request.NewPassword);
+            user.ResetToken = null;
+            user.ResetTokenExpiry = null;
+
+            await _userRepo.SaveChangesAsync();
+
+            return Ok(new { message = "Password has been reset" });
+        }
+
         // Code used to generate JWT token, which was written with the assistance of ai
         private string GenerateJwtToken(User user)
         {
@@ -101,6 +161,7 @@ namespace QuizApp.Controllers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token); // converts token object into jwt string
+
         }
 
         private string HashPassword(string password) // method to hash the password
@@ -111,5 +172,6 @@ namespace QuizApp.Controllers
                 return Convert.ToBase64String(hashedBytes);
             }
         }
+
     }
 }

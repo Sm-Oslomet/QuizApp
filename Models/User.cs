@@ -15,6 +15,9 @@ namespace QuizApp.Models
 
         public string PasswordHash { get; set; } = string.Empty;
         public bool IsAdmin { get; set; } = false;
+        public bool IsVerified { get; set; } // check if a user has their email verified
+        public string? ResetToken { get; set; } // password reset token
+        public DateTime? ResetTokenExpiry { get; set; } // expiration time for the token
         public ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
 
         // Since QuizAttempt links to UserAnswer, we can have User linked to QuizAttempt
