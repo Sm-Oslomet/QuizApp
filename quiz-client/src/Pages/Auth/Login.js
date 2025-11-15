@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { authService } from "../../services/authService";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -34,7 +34,7 @@ export default function Login() {
         password,
         remember,
       });
-      if(loggedIn.role == "admin"){
+      if(loggedIn.role === "admin"){
         navigate("/admin");
       }
       else {navigate("/");}
@@ -111,6 +111,15 @@ export default function Login() {
                     <button className="btn btn-primary w-100" type="submit">
                       Log In
                     </button>
+
+                    <div className="text-center mt-3">
+                      <button 
+                      type="button"
+                      className="btn btn-link"
+                      onClick={() => navigate("/forgot-password")}>
+                        Forgot PAssword?
+                      </button>
+                    </div>
                   </form>
 
                   {/* Register button */}

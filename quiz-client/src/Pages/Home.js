@@ -1,6 +1,6 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../services/authService";
+import { Link } from "react-router-dom";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -94,6 +94,13 @@ export default function Home() {
       {/* Card */}
       <div className="card shadow-sm border-0">
         <div className="card-body p-4 p-md-5">
+          {/* We add logic for users to verify their email, while logged in, if they have not done so */}
+          {user && !user.isVerified && (
+            <div className="alert alert-warning rext-center mb-3">
+              Emaiul not verified
+              <Link to="/verify-email" className="alert-link ms-2"> Verify email</Link>
+              </div>
+          )}
           <ButtonsBlock />
         </div>
       </div>

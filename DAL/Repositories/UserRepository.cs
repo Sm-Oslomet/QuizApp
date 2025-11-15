@@ -33,6 +33,11 @@ namespace QuizApp.DAL.Repositories
             return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
         }
 
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u=> u.Email == email);
+        }
+
         public async Task<User?> GetUserByResetTokenAsync(string token)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.ResetToken == token);

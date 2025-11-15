@@ -1,10 +1,12 @@
-import React from "react";
+import React, {useState } from "react";
 import { authService } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 
 export default function VerifyEmail() {
   const navigate = useNavigate();
   const user = authService.getCurrentUser();
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
 
   if (!user) {
     return (
@@ -14,9 +16,17 @@ export default function VerifyEmail() {
     );
   }
 
-  const verify = () => {
-    authService.verifyEmail();
-    navigate("/select");
+  const verify = async () => {
+    setErr("");
+    setMsg("");
+
+    try {
+      await authService.verifyEmail(user.email);
+      setMsg("Email verified");
+      setTimeout(() => navigate("/"), 1500);
+    } catch (err) {
+      setErr(err.message);
+    }
   };
 
   return (
@@ -29,13 +39,10 @@ export default function VerifyEmail() {
               <h3 className="mb-3">Verify Your Email</h3>
               <p className="text-muted">Email: <strong>{user.email}</strong></p>
 
-              {!user.emailVerified ? (
-                <button className="btn btn-primary w-100" onClick={verify}>
-                  Verify Now
-                </button>
-              ) : (
-                <div className="alert alert-success text-center">Already Verified ✅</div>
-              )}
+              {msg && <div className="alert alert-success">{msg}</div>}
+              {err && <div className="alert alert-danger">{err}</div>}
+
+              <button className="btn btn-primary w-100" onClick={verify}>Verify Now</button>
 
             </div>
           </div>

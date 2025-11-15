@@ -8,10 +8,13 @@ namespace QuizApp.Models
     public class User
     {
         public int UserId { get; set; }
-
         [Required]
+        [MaxLength(225)]
+        public string Email {get;set;} = string.Empty;
+
         [MaxLength(20)]
         public string Username { get; set; } = string.Empty;
+
 
         public string PasswordHash { get; set; } = string.Empty;
         public bool IsAdmin { get; set; } = false;

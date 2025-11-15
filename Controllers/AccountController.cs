@@ -31,12 +31,13 @@ namespace QuizApp.Controllers
                 return BadRequest(new { message = "Invalid data" });
 
             // Checks for existing username, to avoid duplicates
-            var existingUser = await _userRepo.GetUserByUsernameAsync(request.Username);
+            var existingUser = await _userRepo.GetUserByEmailAsync(request.Email);
             if (existingUser != null)
-                return BadRequest(new { message = "Username already exists" });
+                return BadRequest(new { message = "Email already exists" });
 
             var user = new User // we create a new user object
             {
+                Email = request.Email,
                 Username = request.Username,
                 PasswordHash = HashPassword(request.Password) // Store the password after hashing it
             };
@@ -60,7 +61,7 @@ namespace QuizApp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new { message = "Invalid data" });
 
-            var user = await _userRepo.GetUserByUsernameAsync(request.Username);
+            var user = await _userRepo.GetUserByEmailAsync(request.Email);
             if (user == null) // checks for an existing username
                 return Unauthorized(new { message = "Invalid username or password" });
 
@@ -84,14 +85,16 @@ namespace QuizApp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new { message = "Invadlig data" });
 
-            var user = await _userRepo.GetUserByUsernameAsync(request.Email);
+            var user = await _userRepo.GetUserByEmailAsync(request.Email);
             if (user == null)
                 return NotFound(new { message = "User not found" });
 
             user.IsVerified = true;
             await _userRepo.SaveChangesAsync();
 
-            return Ok(new { message = "Email verified successfully" });
+            var newToken= GenerateJwtToken(user); // when a user verifies, we want to give them a new token that includes the "isverified"
+
+            return Ok(new { message = "Email verified successfully", token = newToken });
         }
 
         [HttpPost("forgot-password")]
@@ -100,7 +103,7 @@ namespace QuizApp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new { message = "Invalid data" });
 
-            var user = await _userRepo.GetUserByUsernameAsync(request.Email);
+            var user = await _userRepo.GetUserByEmailAsync(request.Email);
             if (user == null)
                 return BadRequest(new { message = "User does not exist" });
 
@@ -147,7 +150,9 @@ namespace QuizApp.Controllers
             var claims = new[]
             { // we encode claims into the jwt
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()), // user ID
-                new Claim(ClaimTypes.Name, user.Username), // username
+                new Claim(ClaimTypes.Name, user.Username), // username¨
+                new Claim("email", user.Email),
+                new Claim("isVerified", user.IsVerified.ToString()),
                 new Claim(ClaimTypes.Role, user.IsAdmin? "Admin" : "User"), // token will have the role admin if user is admin
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // unique token ID
             };

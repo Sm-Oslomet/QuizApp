@@ -1,5 +1,3 @@
-const USERS_KEY = "users";
-const CURRENT_USER_KEY = "currentUser";
 
 // Helpers ---- Have been commented out since instead of using helpers with localStorage we want to start using the API
 /*
@@ -40,23 +38,28 @@ export const authService = {
     const res = await fetch(`${API_BASE}/account/register`,{
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ username: email, password})
+      body: JSON.stringify({
+        email, 
+        username: name, 
+        password,
+      }),
     });
 
     if (!res.ok){
       const err = await res.json().catch(() => ({}));
-      throw new Error("Registration failed");
+      throw new Error(err.message || "Registration failed");
     }
 
     return await this.login({email, password, remember}); // auto logins user after registration instead of taking you to login page
   },
 
 
+    // -------------- Login
   async login({email,password,remember}){
     const res = await fetch(`${API_BASE}/account/login`,{
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({username: email, password})
+      body: JSON.stringify({email, password})
     });
     if(!res.ok){
       throw new Error("Incorrect email or password!");
@@ -100,7 +103,7 @@ export const authService = {
     );
   },
 
-
+// Decoded JWT token, info about user
   getCurrentUser(){
     const token = this.getToken();
     if(!token) return null;
@@ -110,11 +113,60 @@ export const authService = {
     const role = payload.role || payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "User";
     return {
       id: payload.nameid || payload.sub,
-      username: payload.unique_name || payload.name, role,
+      isVerified: payload.isVerified === "True",
+      email: payload.email,
+      name: payload.name,
+       role,
     };
   },
 
   getRole(){
     return ( sessionStorage.getItem("userRole") || localStorage.getItem("userrole") || "User");
-  }
+  },
+
+
+// verify email logic
+  async verifyEmail(email){
+    const res = await fetch(`${API_BASE}/account/verify-email`, {
+      method: "POST",
+      headers:{"Content-Type": "application/json" },
+      body: JSON.stringify({email}),
+    });
+
+    if (!res.ok) throw new Error("Verification failed");
+
+    const data = await res.json();
+
+    if (data.token){
+      sessionStorage.setItem("authToken", data.token);
+      localStorage.setItem("authToken", data.token);
+    }
+    return data;
+  },
+
+
+  // Forgot password logic
+
+  async forgotPassword(email){
+    const res = await fetch(`${API_BASE}/account/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({email}),
+    });
+
+    if (!res.ok) throw new Error("Could not send reset token, incorrect email");
+    return await res.json();
+  },
+  // reset password logic
+
+  async resetPassword(token, newPassword){
+    const res = await fetch(`${API_BASE}/account/reset-password`, {
+      method: "POST",
+      headers:{"Content-Type": "application/json"},
+      body: JSON.stringify({token, newPassword}),
+    });
+
+    if(!res.ok) throw new Error("Could not reset password");
+    return await res.json();
+  },
 };
