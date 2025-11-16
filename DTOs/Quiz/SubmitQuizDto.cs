@@ -1,6 +1,4 @@
-﻿﻿using QuizApp.Controllers;
-
-namespace QuizApp.DTOs.Quiz
+﻿﻿namespace QuizApp.DTOs.Quiz
 {
     public class SubmitQuizDto
     {

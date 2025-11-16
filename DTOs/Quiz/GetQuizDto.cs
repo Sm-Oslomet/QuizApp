@@ -1,6 +1,6 @@
-using Microsoft.Identity.Client;
 using QuizApp.Models;
-
+namespace QuizApp.DTOs.Quiz
+{
 public class QuizDto
 {
     public int QuizId { get; set; }
@@ -24,4 +24,5 @@ public class AnswerDto
     public int AnswerId { get; set; }
     public string AnswerText { get; set; } = string.Empty;
     public bool IsCorrect { get; set; }
+}
 }

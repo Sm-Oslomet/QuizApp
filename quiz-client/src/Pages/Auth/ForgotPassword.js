@@ -1,5 +1,5 @@
-import React, {useNavigate } from "react-router-dom";
-import {useState} from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { authService } from "../../services/authService";
 
 export default function ForgotPassword() {
@@ -7,9 +7,8 @@ export default function ForgotPassword() {
   const [token, setToken] = useState("");
   const [newPass, setNewPass] = useState("");
   const navigate = useNavigate();
-
+  const [showSuccess, setShowSuccess] = useState(false); // a modal for a cleaner ux when a password is reset
   const [stage, setStage] = useState("email");
-
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
 
@@ -24,7 +23,7 @@ export default function ForgotPassword() {
 
     try {
       const res = await authService.forgotPassword(email.trim().toLowerCase());
-      setMsg(`Reset token generated!`);
+      setMsg("Reset token generated!");
       setToken(res.token);
       setStage("reset");
       setShowModal(false); // close modal
@@ -38,12 +37,13 @@ export default function ForgotPassword() {
 
   const reset = async (e) =>{
     e.preventDefault();
-    setErr("");
-    setMsg("");
+    err("");
+    msg("");
 
     try {
       await authService.resetPassword(token, newPass);
-      setMsg("Password updated");
+      
+      setShowSuccess(true);
 
       setTimeout(() => {navigate("/login");}, 1500);
     } catch (err){
@@ -52,37 +52,27 @@ export default function ForgotPassword() {
   };
 
 
-
-  return (
+return (
     <div className="container py-5">
 
-      {/* Modal for entering email, suggested and follwed ai instructions to set this up*/}
-      {showModal && (
+      {showSuccess && (
         <div className="modal fade show d-block" tabIndex="-1">
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Forgot Password</h5>
+                <h5 className="modal-title">Success</h5>
               </div>
 
               <div className="modal-body">
-                {err && <div className="alert alert-danger py-2">{err}</div>}
-                <p> Enter email to receive reset token</p>
-                <input
-                type="email"
-                className="form-control"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e)=> setEmail(e.target.value)}
-                />
+                <p>Password has been updated</p>
               </div>
 
               <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>
-                  Cancel
-                </button>
-                <button className="btn btn-primary" onClick={sendToken}>
-                  Send token
+                <button
+                  className="btn btn-primary"
+                  onClick={() => navigate("/login")}
+                >
+                  Back to Login
                 </button>
               </div>
             </div>
@@ -90,18 +80,56 @@ export default function ForgotPassword() {
         </div>
       )}
 
-      <div className="row justify-content-center">
-        <div className="col-md-6 col-lg-4">
-          <div className="card shadow-sm">
-            <div className="card-body p-4">
+      {/*Modal for entering email, suggested and followed ai instructiions to set this up*/}
+      {showModal && (
+        <div className="modal fade show d-block" tabIndex="-1">
+          <div className="modal-dialog">
+            <div className="modal-content">
 
-              <h3 className="mb-3 text-center">Reset Password</h3>
+              <div className="modal-header">
+                <h5 className="modal-title">Forgot Password</h5>
+              </div>
 
-              {msg && <div className="alert alert-success">{msg}</div>}
-              {err && <div className="alert alert-danger">{err}</div>}
+              <div className="modal-body">
+                {err && <div className="alert alert-danger py-2">{err}</div>}
 
-              {stage === "reset" && (
-              <form onSubmit={reset}>
+                <p>Enter your email to receive a reset token</p>
+
+                <input
+                  type="email"
+                  className="form-control"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => navigate("/login")}>
+                  Cancel
+                </button>
+
+                <button className="btn btn-primary" onClick={sendToken}>
+                  Send Token
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RESET password section, Got errors due to mistamtch with the brackets and had to copy paste this 
+      codf from a text helper, input my code, got the right bracket placements and copy pasted it back in here */}
+      {!showSuccess && !showModal && stage === "reset" && (
+        <div className="row justify-content-center">
+          <div className="col-md-6 col-lg-4">
+            <div className="card shadow-sm">
+              <div className="card-body p-4">
+
+                <h3 className="text-center">Reset Password</h3>
+
+                <form onSubmit={reset}>
                   <div className="mb-3">
                     <label className="form-label">Reset Token</label>
                     <input
@@ -109,28 +137,31 @@ export default function ForgotPassword() {
                       value={token}
                       onChange={(e) => setToken(e.target.value)}
                       required
-                      />
+                    />
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label"> New Password</label>
+                    <label className="form-label">New Password</label>
                     <input
                       type="password"
                       className="form-control"
                       value={newPass}
                       onChange={(e) => setNewPass(e.target.value)}
-                      required/>
+                      required
+                    />
                   </div>
 
                   <button className="btn btn-primary w-100" type="submit">
                     Reset Password
                   </button>
                 </form>
-              )}
+
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
     </div>
   );
 }

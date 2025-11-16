@@ -27,6 +27,50 @@ namespace QuizApp.Controllers
             return int.Parse(userIdClaim ?? "0");
         }
 
+        [HttpGet("attempts")] // get method for user attempts
+        public async Task<IActionResult> GetMyAttempts()
+        {
+            var userId = GetCurrentUserId();
+            var attempts = await _quizAttemptRepo.GetAttemptsByUserAsync(userId);
+
+            var result = attempts.Select(a=> new QuizAttemptSummaryDto
+            {
+                AttemptId = a.QuizAttemptId,
+                QuizId = a.QuizId,
+                QuizTitle = a.Quiz.Title,
+                Score = a.Score,
+                TotalQuestions = a.TotalQuestions,
+                AttemptedAt = a.AttemptedAt
+            });
+
+            return Ok(result);
+        }
+
+        [HttpGet("attempts/{attemptId}")]
+        public async Task<IActionResult> GetAttemptDetails (int attemptId)
+        {
+            var attempt = await _quizAttemptRepo.GetAttemptByIdAsync(attemptId);
+            if (attempt == null) return NotFound();
+
+            var dto = new QuizAttemptDetailsDto
+            {
+                AttemptId = attempt.QuizAttemptId,
+                QuizId = attempt.QuizId,
+                QuizTitle = attempt.Quiz.Title,
+                Score = attempt.Score,
+                TotalQuestions = attempt.TotalQuestions,
+                AttemptedAt = attempt.AttemptedAt,
+                Answers = attempt.UserAnswers.Select(ua => new AttemptAnswerDto
+                {
+                    QuestionText = ua.Question.QuestionText,
+                    SelectedAnswer = ua.Answer.AnswerText,
+                    IsCorrect = ua.Answer.IsCorrect
+                }).ToList()
+            };
+
+            return Ok(dto);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetMyQuizzes() // gets all quizzes
         {
