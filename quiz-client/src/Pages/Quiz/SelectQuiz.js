@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import quizService from "../../api/quizService";
+import {authService} from "../../services/authService"
 
 function SelectQuiz() {
   const navigate = useNavigate();
+  const user = authService.getCurrentUser();
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -72,12 +74,14 @@ function SelectQuiz() {
         <div className="alert alert-info text-center">
           No quizzes found.
           <div className="mt-3 d-flex flex-column align-items-center gap-2">
-            <button
-              className="btn btn-success"
-              onClick={() => navigate("/create")}
-            >
-              Create New Quiz
-            </button>
+            {!user?.guest && (
+              <button
+                className="btn btn-success"
+                onClick={() => navigate("/create")}
+              >
+                Create New Quiz
+              </button>
+            )}
           </div>
         </div>
       ) : (
@@ -109,33 +113,27 @@ function SelectQuiz() {
                         Play
                       </button>
 
-                      <button
-                        className="btn btn-warning btn-sm text-white"
-                        onClick={() => navigate(`/edit/${quiz.id}`)}
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(quiz.id)}
-                      >
-                        Delete
-                      </button>
+                      {!user?.guest && (
+                        <button
+                          className="btn btn-warning btn-sm text-white"
+                          onClick={() => navigate(`/edit/${quiz.id}`)}
+                        >
+                          Edit
+                        </button>
+                      )}
+                      {!user?.guest && (
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleDelete(quiz.id)}
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
             ))}
-          </div>
-
-          <div className="text-center mt-3 d-flex flex-column align-items-center gap-2">
-            <button
-              className="btn btn-success"
-              onClick={() => navigate("/create")}
-            >
-              Create New Quiz
-            </button>
           </div>
         </>
       )}

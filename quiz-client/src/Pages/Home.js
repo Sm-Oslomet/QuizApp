@@ -49,14 +49,16 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="col-12 col-md-5">
-              <button
-                onClick={() => navigate("/create")}
-                className="btn btn-primary btn-lg w-100"
-              >
-                Create a New Quiz
-              </button>
-            </div>
+            {!user?.guest && ( // button only avaliable to logged in users, guest users can't create new quizzes
+              <div className="col-12 col-md-5">
+                <button
+                  onClick={() => navigate("/create")}
+                  className="btn btn-primary btn-lg w-100"
+                >
+                 Create a New Quiz
+                </button>
+              </div>
+            )}
           </div>
         </>
       );
@@ -108,10 +110,10 @@ export default function Home() {
       {/* Card */}
       <div className="card shadow-sm border-0">
         <div className="card-body p-4 p-md-5">
-          {/* We add logic for users to verify their email, while logged in, if they have not done so */}
-          {user && !user.isVerified && (
+          {/* We add logic for users to verify their email, while logged in, if they have not done so. also a check to see if the */}
+          {user && !user.guest && !user.isVerified && (
             <div className="alert alert-warning rext-center mb-3">
-              Emaiul not verified
+              Email not verified
               <Link to="/verify-email" className="alert-link ms-2"> Verify email</Link>
             </div>
           )}

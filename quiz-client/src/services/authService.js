@@ -40,7 +40,7 @@ export const authService = {
       headers: {"Content-Type":"application/json"},
       body: JSON.stringify({
         email, 
-        username: name, 
+        name, 
         password,
       }),
     });
@@ -90,10 +90,27 @@ export const authService = {
   },
 
   logout(){
-    localStorage.removeItem("authToken");
+    localStorage.removeItem("authToken"); // we clear tokens stored, JWT
     sessionStorage.removeItem("authToken");
-    localStorage.removeItem("userRole");
+
+    localStorage.removeItem("userRole"); // clear role
     sessionStorage.removeItem("userRole");
+
+    sessionStorage.removeItem("guestUser"); // if the user is logged in as a guest, clear it aswell
+  },
+
+
+  guestLogin() {
+    // we clear JWT tokens when a user logs in as guest, to not confuse backend
+    sessionStorage.removeItem("authToken");
+    localStorage.removeItem("authToken");
+
+    const guestUser = {
+      guest: true,
+      name: "Guest"
+    };
+
+    sessionStorage.setItem("guestUser", JSON.stringify(guestUser));
   },
 
   getToken(){
@@ -105,6 +122,12 @@ export const authService = {
 
 // Decoded JWT token, info about user
   getCurrentUser(){
+
+    const guestData = sessionStorage.getItem("guestUser");
+    if (guestData) {
+      return JSON.parse(guestData);
+    }
+
     const token = this.getToken();
     if(!token) return null;
 
@@ -112,11 +135,11 @@ export const authService = {
 
     const role = payload.role || payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "User";
     return {
-      id: payload.nameid || payload.sub,
+      id: payload.id,
       isVerified: payload.isVerified === "True",
       email: payload.email,
       name: payload.name,
-       role,
+      role: payload.role,
     };
   },
 

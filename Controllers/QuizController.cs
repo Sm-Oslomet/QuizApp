@@ -24,7 +24,7 @@ namespace QuizApp.Controllers
 
         private int GetCurrentUserId() // We extract UserId from the jwt token that was created in account creation
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userIdClaim = User.FindFirst("id")?.Value;
             return int.Parse(userIdClaim ?? "0");
         }
 
@@ -270,10 +270,22 @@ namespace QuizApp.Controllers
             return Ok(new { message = "Quiz deleted successfully" });
         }
 
+        [AllowAnonymous]
         [HttpPost("submit")]// method that handles quiz completion by a user
         public async Task<IActionResult> SubmitQuiz([FromBody] SubmitQuizDto dto)
         {
-            var userId = GetCurrentUserId();
+            int userId = 0;
+            bool isGuest = false;
+
+            if(User.Identity?.IsAuthenticated == true)
+            {
+                userId = GetCurrentUserId();
+            }
+            else
+            {
+                isGuest = true;
+            }
+
             var quiz = await _quizRepo.GetQuizByIdAsync(dto.QuizId);
 
             if (quiz == null)
@@ -311,15 +323,28 @@ namespace QuizApp.Controllers
                 UserAnswers = userAnswers
             };
 
-            await _quizAttemptRepo.AddAttemptAsync(attempt); // we use quizattempt repo to save attempts
-            await _quizAttemptRepo.SaveChangesAsync();
-            return Ok(new // returns info on the attempt, with score and percentage correct
+            if (!isGuest){ // since guest info won't be saved, we make sure to have a guest check
+
+                await _quizAttemptRepo.AddAttemptAsync(attempt); // we use quizattempt repo to save attempts
+                await _quizAttemptRepo.SaveChangesAsync();
+                return Ok(new // returns info on the attempt, with score and percentage correct
+                {
+                    attemptId = attempt.QuizAttemptId,
+                    score = attempt.Score,
+                    totalQuestions = attempt.TotalQuestions,
+                    percentage = attempt.Score * 100.0 / attempt.TotalQuestions
+                });
+            }
+            else
             {
-                attemptId = attempt.QuizAttemptId,
-                score = attempt.Score,
-                totalQuestions = attempt.TotalQuestions,
-                percentage = attempt.Score * 100.0 / attempt.TotalQuestions
-            });
+                return Ok(new // we still want to return the results for a guest, without saving them
+                {
+                    attemptId = 0,
+                    score = attempt.Score,
+                    totalQuestions = attempt.TotalQuestions,
+                    percentage = attempt.Score*100 /attempt.TotalQuestions
+                });
+            }
         }
     }
 }
