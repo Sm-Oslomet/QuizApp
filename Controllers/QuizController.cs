@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc;
 using QuizApp.DAL.Interfaces;
 using QuizApp.DTOs.Quiz;
@@ -84,6 +85,8 @@ namespace QuizApp.Controllers
                 Description = q.Description,
                 CreatedAt = q.CreatedAt,
                 UserId = q.UserId,
+                CreatorName = q.User.Username,
+
                 Questions = q.Questions.Select(ques => new QuestionDto
                 {
                     QuestionId = ques.QuestionId,
@@ -98,6 +101,38 @@ namespace QuizApp.Controllers
             });
 
             return Ok(quizDtos); // returns json of a user's quizzes
+        }
+
+        [AllowAnonymous] // Get method so everyone has access to all quizzes, and can take a quiz wether they made it ir not
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllQuizzes()
+        {
+            var quizzes = await _quizRepo.GetAllQuizzesAsync();
+
+            var QuizDtos = quizzes.Select(q=> new QuizDto 
+            {
+                QuizId = q.QuizId,
+                Title = q.Title,
+                Description = q.Description,
+                CreatedAt = q.CreatedAt,
+                UserId = q.UserId,
+
+                CreatorName = q.User.Username,
+
+                Questions = q.Questions.Select(ques => new QuestionDto
+                {
+                    QuestionId = ques.QuestionId,
+                    QuestionText = ques.QuestionText,
+                    Answers = ques.Answers.Select(a=> new AnswerDto
+                    {
+                        AnswerId = a.AnswerId,
+                        AnswerText = a.AnswerText,
+                        IsCorrect = a.IsCorrect
+                    }).ToList()
+                }).ToList()
+            });
+
+            return Ok(QuizDtos);
         }
 
         [AllowAnonymous] // since the home page has a button for anonymous quiz taking

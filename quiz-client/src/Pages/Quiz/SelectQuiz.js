@@ -23,7 +23,8 @@ function SelectQuiz() {
         id: q.quizId || q.QuizId || q.id,
         title: q.title || q.Title,
         description: q.description || q.Description || "",
-        questions: q.questions || q.Questions || []
+        questions: q.questions || q.Questions || [],
+        creatorName: q.creatorName || q.CreatorName || ""
       }));
       setQuizzes(mapped);
     } catch (err) {
@@ -90,10 +91,15 @@ function SelectQuiz() {
                     <p className="text-muted">
                       {quiz.description || "No description"}
                     </p>
+                    
+                    <p className="small text-secondary">
+                      Created by: {quiz.creatorName || "Unknown"}
+                    </p>
 
                     <p className="small text-secondary">
                       Questions: {quiz.questions?.length || 0}
                     </p>
+
 
                     <div className="mt-auto d-flex justify-content-between">
                       <button

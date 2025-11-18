@@ -17,15 +17,20 @@ namespace QuizApp.DAL.Repositories
         public async Task<IEnumerable<Quiz>> GetAllQuizzesByUserIdAsync(int userId)
         {
             return await _context.Quizzes
-            .Where(q => q.UserId == userId)
+            .Include(q=> q.User)
             .Include(q => q.Questions)
-            .ThenInclude(a => a.Answers)
+                .ThenInclude(q => q.Answers)
+            .Where(q => q.UserId == userId)
             .ToListAsync();
         }
         
         public async Task<IEnumerable<Quiz>> GetAllQuizzesAsync()
         {
-            return await _context.Quizzes.ToListAsync();
+            return await _context.Quizzes
+                .Include(q=>q.User)
+                .Include(q=>q.Questions)
+                    .ThenInclude(q=> q.Answers)
+                .ToListAsync();
         }
         public async Task<Quiz?> GetQuizByIdAsync(int id)
         {

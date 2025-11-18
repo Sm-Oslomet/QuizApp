@@ -1,4 +1,3 @@
-import $ from "jquery";
 import { authService } from "../services/authService.js";
 
 const API_URL = "http://localhost:5251/api/quiz";
@@ -10,11 +9,10 @@ function getAuthHeader(){
 
 const quizService = {
   async getAll(){
-    const res = await fetch(API_URL, {
-      method: "GET",
+    const res = await fetch(`${API_URL}/all`, {
+      method:"GET",
       headers: {
-        "Content-Type" : "application/json",
-        ...getAuthHeader(),
+        "Content-Type": "application/json", ...getAuthHeader(),
       },
     });
 
@@ -103,6 +101,30 @@ const quizService = {
     if(!res.ok) throw new Error("Failed to submit attempt");
     return await res.json();
   },
+
+  async getMyAttempts(){
+    const res = await fetch(`${API_URL}/attempts`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json", ...getAuthHeader(),
+      },
+    });
+
+    if (!res.ok) throw new Error("Failed to get attempts");
+    return await res.json();
+  },
+
+  async getAttemptDetails(attemptId){
+    const res = await fetch (`${API_URL}/attempts/{attemptID}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json", ...getAuthHeader(),
+      },
+    });
+    if (!res.ok) throw new Error("Failed to get attempt details");
+    return await res.json();
+  },
+
 };
 export default quizService;
 

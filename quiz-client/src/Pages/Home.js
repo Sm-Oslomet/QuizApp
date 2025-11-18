@@ -1,14 +1,28 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { authService } from "../services/authService";
-import { Link } from "react-router-dom";
+import quizService from "../api/quizService";
+import { useEffect, useState} from "react";
+
 
 export default function Home() {
   const navigate = useNavigate();
+  const [attempts, setAttempts] = useState([]);
   const user = authService.getCurrentUser();
 
   const greetingName = user?.guest
     ? "Guest"
     : user?.name || user?.email?.split("@")[0] || "User";
+
+  /* (Had a critical error that get sending GET requests non stop, had to use AI to fix, 
+  inserted code and got the fixed version. Only changes were specifically what caused the break, 
+  nothing else was changed. FIX: remove user from dependency array to stop infinite re-renders */
+  useEffect(() => {
+    if (user && !user.guest) {
+      quizService.getMyAttempts()
+        .then(data => setAttempts(data))
+        .catch(err => console.error("failed to load attempts:", err));
+    }
+  }, []); // <--- FIXED
 
   const handleGuest = () => {
     authService.guestLogin();
@@ -99,11 +113,47 @@ export default function Home() {
             <div className="alert alert-warning rext-center mb-3">
               Emaiul not verified
               <Link to="/verify-email" className="alert-link ms-2"> Verify email</Link>
-              </div>
+            </div>
           )}
           <ButtonsBlock />
         </div>
       </div>
+
+      {user && !user.guest && ( // display for user's quiz history, only applicable to users and not guests
+        <div className="mt-5">
+          <h3 className="fw-semibold mb-3">Quiz history</h3>
+
+          {/* FIX: attempts.length typo */}
+          {attempts.length === 0 ? (
+            <p className="text-muted">No quiz completions</p>
+          ) : (
+            <div className="list-group">
+              {attempts.map(a => (
+                <div 
+                  key={a.attemptId}
+                  className="list-group-item list-group-item-action mb-2 shadow-sm"
+                  style={{ borderRadius: "8px" }}
+                >
+                  {/* FIX: alighn-items-center → align-items-center */}
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h5 className="mb-1">{a.quizTitle}</h5>
+                      <small className="text-muted">
+                        {new Date(a.attemptedAt).toLocaleString()}
+                      </small>
+                    </div>
+
+                    {/* FIX: classname → className, totalQuesitons → totalQuestions */}
+                    <span className="badge bg-primary rounded-pill">
+                      {a.score}/{a.totalQuestions}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

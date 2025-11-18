@@ -37,8 +37,8 @@ export default function ForgotPassword() {
 
   const reset = async (e) =>{
     e.preventDefault();
-    err("");
-    msg("");
+    setErr("");
+    setMsg("");
 
     try {
       await authService.resetPassword(token, newPass);
