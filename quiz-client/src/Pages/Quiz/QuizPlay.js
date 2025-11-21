@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import quizService from "../../api/quizService";
 import {authService} from "../../services/authService";
+import ResponseModal from "../../components/ResponseModal";
 
 function QuizPlay() {
   const { id } = useParams();
@@ -14,6 +15,7 @@ function QuizPlay() {
   const [feedbackText, setFeedbackText] = useState("");
   const [wasCorrect, setWasCorrect] = useState(null); // true / false / null
   const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState({show:false, title:"", message:"", type: "success"});
 
   // last riktig quiz fra localStorage
   useEffect(() => {
@@ -42,7 +44,7 @@ function QuizPlay() {
           }))
         };
         setQuiz(mapped);
-      } catch (err) {alert("Failed to load quiz");
+      } catch (err) {showMessage("Failed to load quiz");
         navigate("/select");
       } finally {setLoading(false);}
     };
@@ -60,6 +62,9 @@ function QuizPlay() {
   if(!quiz) return<p className="text-center m-5">Quiz not found</p>;
 
 
+  const showMessage = (title, message, type="success", onConfirm=null) => {
+    setModal({show:true, title, message, type, onConfirm});
+  };
   const question = quiz.questions[current];
   const livePercentage = Math.round(
     (score / quiz.questions.length) * 100
@@ -114,7 +119,8 @@ function QuizPlay() {
               percentage: res.percentage
             }
           });
-        } catch (err){ alert("Failed to submit attempt");
+        } catch (err){
+          showMessage("Error", "Failed to submit attempt", "error")
         }
       }
     }
@@ -216,6 +222,22 @@ function QuizPlay() {
           ⬅ Back to quiz list
         </button>
       </div>
+
+      {modal.show && (
+        <ResponseModal
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onClose={() =>
+          setModal((prev) => ({...prev, show:false}))
+        }
+        onConfirm={() => {
+          if (modal.onConfirm) modal.onConfirm();
+          setModal((prev) => ({...prev, show:false}))
+        }}
+        showConfirm={!!modal.onConfirm}
+        />
+      )}
     </div>
   );
 }

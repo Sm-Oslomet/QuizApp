@@ -27,7 +27,6 @@ function saveCurrentUser(user, remember) {
 }
 */
 
-
 // AUTH SERVICE
 const API_BASE="http://localhost:5251/api";
 

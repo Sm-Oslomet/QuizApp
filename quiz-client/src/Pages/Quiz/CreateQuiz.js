@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import quizService from "../../api/quizService";
+import ResponseModal from "../../components/ResponseModal";
 
 function CreateQuiz() {
   const navigate = useNavigate();
@@ -13,6 +14,12 @@ function CreateQuiz() {
     correctAnswer: "",
   });
   const [correctIndex, setCorrectIndex] = useState(null);
+
+  const [modal, setModal] = useState({show:false, title: "", message: "", type: "success"});
+
+  const showMessage = (title, message, type = "success", onConfirm = null)=> {
+    setModal({show: true, title, message, type, onConfirm});
+  };
 
   const handleOptionChange = (i, value) => {
     const next = [...currentQuestion.options];
@@ -30,7 +37,7 @@ function CreateQuiz() {
       currentQuestion.options.some((o) => !o.trim()) ||
       correctIndex === null
     ) {
-      alert("Please fill in the question , all options, and select the correct answer.");
+      showMessage("Missing information", "Please fill in the question , all options, and select the correct answer.", "error");
       return;
     }
 
@@ -47,7 +54,7 @@ function CreateQuiz() {
 
   const finishQuiz = async () => {
     if (!title.trim() || questions.length === 0) {
-      alert("Please enter a title and at least one question.");
+      showMessage("Missing information", "Please enter a title and at least one question.", "error");
       return;
     }
 
@@ -65,11 +72,11 @@ function CreateQuiz() {
 
     try {
       await quizService.create(newQuiz);
-      alert("Quiz saved to database!");
-      navigate("/select");
+      showMessage("Success", "Quiz saved to database!");
+      setTimeout(()=>navigate("/select"), 1200);
     } catch (err) {
       console.error(err);
-      alert("Failed to save quiz to database");
+      showMessage("Error", "Failed to save quiz to database", "error");
     }
   };
 
@@ -138,6 +145,20 @@ function CreateQuiz() {
       </div>
 
       <div className="text-muted mt-3">Questions: {questions.length}</div>
+
+      {modal.show && (
+        <ResponseModal
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onClose={()=> setModal((prev) => ({ ...prev, show:false}))}
+        onConfirm={() => {
+          if (modal.onConfirm) modal.onConfirm();
+          setModal((prev) => ({...prev, show:false}));
+        }}
+        showConfirm={!!modal.onConfirm}
+        />
+      )}
     </div>
   );
 }

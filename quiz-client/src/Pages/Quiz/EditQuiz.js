@@ -1,11 +1,17 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import quizService from "../../api/quizService";
+import ResponseModal from "../../components/ResponseModal";
 
 function EditQuiz() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [quiz, setQuiz] = useState(null);
+  const [modal, setModal] = useState({show:false, title:"", message:"", type:"success"});
+
+  const showMessage = (title, message, type = "success") => {
+    setModal({ show:true, title, message, type});
+  };
 
   // henter quiz fra database ved hjelp av api, byttet logikk fra storage henting
   useEffect(() => {
@@ -26,8 +32,8 @@ function EditQuiz() {
         };
         setQuiz(mapped);
       } catch (err) {
-        alert("Failed to load quiz");
-        navigate("/select");
+        showMessage("Failed to load quiz", "error");
+        setTimeout(() => navigate("/select"), 1200);
       }
     }
     loadQuiz();
@@ -104,7 +110,7 @@ function EditQuiz() {
   // Lagre endringer
   const handleSave = async () => {
     if (!quiz.title.trim()) {
-      alert("Please enter a title.");
+      showMessage("Missing title", "Please enter a title.", "error");
       return;
     }
 
@@ -124,8 +130,8 @@ function EditQuiz() {
         (q) => !q.text || q.options.some((o) => !o) || !q.correctAnswer
       )
     ) {
-      alert(
-        "Each question must have text, four options, and a selected correct answer."
+      showMessage(
+        "Error", "Each question must have text, four options, and a selected correct answer.", "error"
       );
       return;
     }
@@ -149,8 +155,8 @@ function EditQuiz() {
         // error (to prevent conflicts with user data) and we want the user to know why an 
         // edit does not work, we implement logic that gives user a message explaining why their edit does not work 
       await quizService.update(quiz.id, payload);
-      alert("Quiz updated");
-      navigate("/select");
+      showMessage("Success", "Quiz updated");
+      setTimeout(()=> navigate("/select"), 1200);
     } catch (err) {
       console.error("Failed to update quiz", err);
       
@@ -166,7 +172,7 @@ function EditQuiz() {
           msg = err.message || msg;
         }
       }
-      alert(msg);
+      showMessage("Update failed", msg, "error");
     }
   };
 
@@ -265,6 +271,17 @@ function EditQuiz() {
           Save Changes
         </button>
       </div>
+
+      {modal.show && (
+        <ResponseModal
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onClose={() =>
+          setModal((prev) => ({...prev, show:false}))
+        }
+        />
+      )}
     </div>
   );
 }

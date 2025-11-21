@@ -2,12 +2,21 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import quizService from "../../api/quizService";
 import {authService} from "../../services/authService"
+import ResponseModal from "../../components/ResponseModal";
 
 function SelectQuiz() {
   const navigate = useNavigate();
   const user = authService.getCurrentUser();
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState({show: false, title:"", message:"", type: "success"});
+
+
+  const showMessage = (title, message, type = "success", onConfirm =null) =>{
+    setModal({
+      show:true, title, message, type, onConfirm
+    });
+  };
 
   // last quizer ved mount
   useEffect(() => {
@@ -18,9 +27,6 @@ function SelectQuiz() {
     setLoading(true);
     try {
       let all = await quizService.getAll();
-
-      // Hvis ingen quizer finnes ennå, ikke last eksempler automatisk her,
-      // bare vis "No quizzes found" skjermen. (Dette matcher koden din.)
       const mapped = all.map((q)=> ({
         id: q.quizId || q.QuizId || q.id,
         title: q.title || q.Title,
@@ -31,22 +37,26 @@ function SelectQuiz() {
       setQuizzes(mapped);
     } catch (err) {
       console.error("Failed to load quizzes:", err);
-      alert("Failed to load quizzes.");
+      showMessage("Error", "Failed to load quizzes.", "error"); // title, message and type
     } finally {
       setLoading(false);
     }
   }
 
   async function handleDelete(id) {
-    if (!window.confirm("Delete this quiz?")) return;
+    showMessage(
+      "Delete Quiz", "Are you sure you want to delete this quiz?", "danger",
+      async() => {
+        try {
+          await quizService.remove(id);
 
-    try {
-      await quizService.remove(id);
-      setQuizzes((prev) => prev.filter((q) => q.id !== id));
-    } catch (err) {
-      console.error("Failed to delete quiz:", err);
-      alert("Failed to delete quiz.");
-    }
+          setQuizzes((prev) => prev.filter((q) => q.id !== id));
+          showMessage("Success", "Quiz has been deleted", "success");
+        } catch (err){
+          showMessage("Error", "Failed to delete quiz", "error");
+        }
+      }
+    );
   }
 
   /* we comment out load examples since it uses localstorage, which is no longer needed
@@ -136,6 +146,20 @@ function SelectQuiz() {
             ))}
           </div>
         </>
+      )}
+
+      {modal.show && (
+        <ResponseModal
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onClose={() => setModal((prev) => ({...prev, show:false}))}
+        onConfirm={() => {
+          if (modal.onConfirm) modal.onConfirm();
+          setModal((prev) => ({...prev, show:false}));
+        }}
+        showConfirm={!!modal.onConfirm}
+        />
       )}
     </div>
   );
