@@ -16,10 +16,13 @@ namespace QuizApp.Controllers
         private readonly IQuizRepository _quizRepo; // CRUD for Quiz
         private readonly IQuizAttemptRepository _quizAttemptRepo; // Since we separated QuizAttempt and Quiz Repo/Interfaces into their own files, we need to access both
 
-        public QuizController(IQuizRepository quizRepo, IQuizAttemptRepository quizAttemptRepo) // dependency injection, allows controller to call into the data layer
+        private readonly ILogger<QuizController> _logger; // in order to have server side logging, using this we can log the errors we have ahdnled
+
+        public QuizController(IQuizRepository quizRepo, IQuizAttemptRepository quizAttemptRepo, ILogger<QuizController> logger) // dependency injection, allows controller to call into the data layer
         {
             _quizRepo = quizRepo;
             _quizAttemptRepo = quizAttemptRepo;
+            _logger = logger;
         }
 
         private int GetCurrentUserId() // We extract UserId from the jwt token that was created in account creation
@@ -85,8 +88,9 @@ namespace QuizApp.Controllers
                 Description = q.Description,
                 CreatedAt = q.CreatedAt,
                 UserId = q.UserId,
-                CreatorName = q.User.Username,
-
+                CreatorName = string.IsNullOrEmpty(q.User.Username)
+                    ? q.User.Email.Split("@")[0]
+                    : q.User.Username,
                 Questions = q.Questions.Select(ques => new QuestionDto
                 {
                     QuestionId = ques.QuestionId,
@@ -117,7 +121,9 @@ namespace QuizApp.Controllers
                 CreatedAt = q.CreatedAt,
                 UserId = q.UserId,
 
-                CreatorName = q.User.Username,
+                CreatorName = string.IsNullOrEmpty(q.User.Username)
+                    ? q.User.Email.Split("@")[0]
+                    : q.User.Username,
 
                 Questions = q.Questions.Select(ques => new QuestionDto
                 {
@@ -169,6 +175,7 @@ namespace QuizApp.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateQuiz([FromBody] CreateQuizDto dto) // model to create a new quiz
         {
+            try {
             if (!ModelState.IsValid)
                 return BadRequest(new { message = "Invalid data" });
 
@@ -194,7 +201,7 @@ namespace QuizApp.Controllers
             await _quizRepo.CreateQuizAsync(quiz);
             await _quizRepo.SaveChangesAsync();
 
-            // Return DTO instead of EF entity
+
             var quizDto = new QuizDto // we then map the quiz to a quizdto 
             {
                 QuizId = quiz.QuizId,
@@ -216,6 +223,12 @@ namespace QuizApp.Controllers
             };
 
             return CreatedAtAction(nameof(GetQuiz), new { id = quiz.QuizId }, quizDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating quiz");
+                return StatusCode(500, new {message = "Internal server error"});
+            }
         }
 
         [HttpPut("{id}")] // method for updating quiz
@@ -268,6 +281,31 @@ namespace QuizApp.Controllers
 
             await _quizRepo.DeleteQuizAsync(quiz.QuizId); // asynchroniously deletes quiz
             return Ok(new { message = "Quiz deleted successfully" });
+        }
+
+        [HttpDelete("{quizId}/attempts")]
+        [Authorize]
+        public async Task<IActionResult> DeleteAttempts(int quizId)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var quiz = await _quizRepo.GetQuizByIdAsync(quizId);
+                if(quiz==null)
+                    return NotFound(new {message = "Quiz not found"});
+
+                if (quiz.UserId != userId)
+                    return Forbid();
+
+                await _quizAttemptRepo.DeleteAttemptsByQuizId(quizId);
+                await _quizAttemptRepo.SaveChangesAsync();
+
+                return Ok(new {message="All quiz attempts deleted"});
+            } catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting quiz attempts");
+                return StatusCode(500, new{message="Internal server error"});
+            }
         }
 
         [AllowAnonymous]

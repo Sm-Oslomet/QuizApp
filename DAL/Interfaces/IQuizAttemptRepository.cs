@@ -14,6 +14,7 @@ namespace QuizApp.DAL.Interfaces
 
         Task<IEnumerable<UserAnswer>> GetUserAnswersByAttemptIdAsync(int attemptId);
         Task AddUserAnswerAsync(UserAnswer useranswer);
+        Task DeleteAttemptsByQuizId(int quizId);
 
         Task SaveChangesAsync();
     }

@@ -67,6 +67,18 @@ namespace QuizApp.DAL.Repositories
             await _context.UserAnswers.AddAsync(userAnswer);
         }
 
+        public async Task DeleteAttemptsByQuizId(int quizId)
+        {
+            var attempts = await _context.QuizAttempts
+                .Where(a=> a.QuizId == quizId)
+                .ToListAsync();
+
+            if(attempts.Any())
+            {
+                _context.QuizAttempts.RemoveRange(attempts);
+            }
+        }
+
         public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
     }
 }

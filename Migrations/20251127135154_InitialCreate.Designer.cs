@@ -12,7 +12,7 @@ using QuizApp.DAL;
 namespace QuizApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251117044115_InitialCreate")]
+    [Migration("20251127135154_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

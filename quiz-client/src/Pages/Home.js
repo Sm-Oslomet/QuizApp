@@ -24,6 +24,7 @@ export default function Home() {
     }
   }, []); // <--- FIXED
 
+
   const handleGuest = () => {
     authService.guestLogin();
     navigate("/select");
@@ -123,9 +124,10 @@ export default function Home() {
 
       {user && !user.guest && ( // display for user's quiz history, only applicable to users and not guests
         <div className="mt-5">
+          <div className ="d-flex justify-content-between align-items-center mb-3">
           <h3 className="fw-semibold mb-3">Quiz history</h3>
+          </div>
 
-          {/* FIX: attempts.length typo */}
           {attempts.length === 0 ? (
             <p className="text-muted">No quiz completions</p>
           ) : (
@@ -136,7 +138,6 @@ export default function Home() {
                   className="list-group-item list-group-item-action mb-2 shadow-sm"
                   style={{ borderRadius: "8px" }}
                 >
-                  {/* FIX: alighn-items-center → align-items-center */}
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
                       <h5 className="mb-1">{a.quizTitle}</h5>
@@ -145,7 +146,6 @@ export default function Home() {
                       </small>
                     </div>
 
-                    {/* FIX: classname → className, totalQuesitons → totalQuestions */}
                     <span className="badge bg-primary rounded-pill">
                       {a.score}/{a.totalQuestions}
                     </span>

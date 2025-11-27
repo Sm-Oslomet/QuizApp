@@ -32,7 +32,8 @@ function SelectQuiz() {
         title: q.title || q.Title,
         description: q.description || q.Description || "",
         questions: q.questions || q.Questions || [],
-        creatorName: q.creatorName || q.CreatorName || ""
+        creatorName: q.creatorName || q.CreatorName || "",
+        userId: q.userId || q.UserId
       }));
       setQuizzes(mapped);
     } catch (err) {
@@ -54,6 +55,19 @@ function SelectQuiz() {
           showMessage("Success", "Quiz has been deleted", "success");
         } catch (err){
           showMessage("Error", "Failed to delete quiz", "error");
+        }
+      }
+    );
+  }
+
+  async function handleClearAttempts(quizId){
+    showMessage("Clear Attempts", "Are you sure you want to clear all attempts?", "danger",
+      async() => {
+        try {
+          await quizService.clearAttemptsForQuiz(quizId);
+          showMessage("Success", "Attempts cleared successfully");
+        } catch (err) {
+          showMessage("Error", err.message || "Failed to clear attempts", "error");
         }
       }
     );
@@ -101,7 +115,12 @@ function SelectQuiz() {
               <div className="col-md-6 mb-4" key={quiz.id}>
                 <div className="card shadow-sm h-100">
                   <div className="card-body d-flex flex-column">
-                    <h5 className="card-title">{quiz.title}</h5>
+                    <div className="d-flex align-items-center gap-2">
+                      <h5 className="card-title">{quiz.title}</h5>
+                      {!user?.guest && Number(quiz.userId) === Number(user?.id) && (
+                        <span className="badge bg-success">Your Quiz</span>
+                      )}
+                      </div>
                     <p className="text-muted">
                       {quiz.description || "No description"}
                     </p>
@@ -123,7 +142,9 @@ function SelectQuiz() {
                         Play
                       </button>
 
-                      {!user?.guest && (
+                      {!user?.guest && Number(quiz.userId) === Number(user?.id) && ( // we check to see if the quiz 
+                      // belongs to the user, only the quiz creator should have the option to edit, delete and clear 
+                      // quiz attemp history
                         <button
                           className="btn btn-warning btn-sm text-white"
                           onClick={() => navigate(`/edit/${quiz.id}`)}
@@ -131,13 +152,21 @@ function SelectQuiz() {
                           Edit
                         </button>
                       )}
-                      {!user?.guest && (
+                      {!user?.guest && Number(quiz.userId) === Number(user?.id) && (
                         <button
                           className="btn btn-danger btn-sm"
                           onClick={() => handleDelete(quiz.id)}
                         >
                           Delete
                         </button>
+                      )}
+                      {!user?.guest && Number(quiz.userId) === Number(user?.id) && (
+                        <button
+                          className="btn btn-outline-danger btn-sm"
+                          onClick={() => handleClearAttempts(quiz.id)}
+                          >
+                            Clear attemtps
+                          </button>
                       )}
                     </div>
                   </div>

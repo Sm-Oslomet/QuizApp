@@ -89,6 +89,17 @@ const quizService = {
     return await res.json().catch(() => ({}));
   },
 
+  async clearAttemptsForQuiz(quizId){
+    const res = await fetch(`${API_URL}/${quizId}/attempts`, {
+      method: "DELETE",
+      headers: { ...getAuthHeader() },
+    });
+    if(!res.ok){
+      const text = await res.text();
+      throw new Error(text || "Failed to clear attempts");
+    }
+  },
+
   async submit(attempt){
     const res = await fetch(`${API_URL}/submit`, {
       method: "POST",
@@ -124,7 +135,6 @@ const quizService = {
     if (!res.ok) throw new Error("Failed to get attempt details");
     return await res.json();
   },
-
 };
 export default quizService;
 
