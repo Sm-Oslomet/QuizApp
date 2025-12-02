@@ -1,6 +1,3 @@
-Here’s a **cleaned-up, professionally styled, and consistent** version of your README.
-I preserved all content but improved formatting, structure, clarity, grammar, and consistency.
-
 ---
 
 # QuizApp – Full-Stack Quiz Application
