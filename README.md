@@ -3,7 +3,7 @@
 # QuizApp – Full-Stack Quiz Application
 
 A full-stack quiz platform built with **ASP.NET Core Web API**, **Entity Framework Core**, **SQL Server**, and a **React** frontend.
-Users can register, verify their email, create quizzes, take quizzes, view results, and more. Admins can manage users and quizzes.
+Users can register, verify their email, create quizzes, take quizzes, view results, and more. 
 
 ---
 
@@ -15,7 +15,6 @@ Users can register, verify their email, create quizzes, take quizzes, view resul
 * Register / Login / Forgot Password / Reset Password
 * Email verification flag
 * Secure password hashing (SHA-256)
-* Admin role support
 
 ### 📝 Quiz System
 
@@ -25,12 +24,6 @@ Users can register, verify their email, create quizzes, take quizzes, view resul
 * Automatic score calculation
 * Record attempts with detailed results
 * Delete quiz attempts
-
-### 🔐 Admin Area
-
-* View all users
-* Delete users
-* View all quizzes
 
 ### 🧪 API Testing
 
