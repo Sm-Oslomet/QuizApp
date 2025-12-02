@@ -1,62 +1,72 @@
+Here’s a **cleaned-up, professionally styled, and consistent** version of your README.
+I preserved all content but improved formatting, structure, clarity, grammar, and consistency.
 
-# QuizApp – Full-Stack Quiz Application  
-A full-stack quiz system built using **ASP.NET Core Web API**, **Entity Framework Core**, **SQL Server**, and a **React client**.  
-Users can register, verify email, create quizzes, edit them, take quizzes, view results, and admins can manage users & quizzes.
+---
+
+# QuizApp – Full-Stack Quiz Application
+
+A full-stack quiz platform built with **ASP.NET Core Web API**, **Entity Framework Core**, **SQL Server**, and a **React** frontend.
+Users can register, verify their email, create quizzes, take quizzes, view results, and more. Admins can manage users and quizzes.
 
 ---
 
 ## 📌 Features
 
-### 👤 Authentication & Users
-- JWT-based authentication  
-- Login / Register / Forgot Password / Reset Password  
-- Email verification flag  
-- Password hashing with SHA-256  
-- Admin role support  
+### 👤 Authentication & User Management
+
+* JWT-based authentication
+* Register / Login / Forgot Password / Reset Password
+* Email verification flag
+* Secure password hashing (SHA-256)
+* Admin role support
 
 ### 📝 Quiz System
-- Create quizzes with unlimited questions and answers  
-- Edit quizzes (only if the quiz has no attempts)  
-- Take quizzes as a user or guest  
-- Automatic score calculation  
-- Record quiz attempts and detailed results  
-- Delete quiz attempts  
+
+* Create quizzes with unlimited questions and answers
+* Edit quizzes (only if no attempts exist)
+* Take quizzes as an authenticated user or as a guest
+* Automatic score calculation
+* Record attempts with detailed results
+* Delete quiz attempts
 
 ### 🔐 Admin Area
-- List all users  
-- Delete users  
-- List all quizzes  
+
+* View all users
+* Delete users
+* View all quizzes
 
 ### 🧪 API Testing
-- Swagger UI enabled (Development mode)  
-- JWT authorization integrated into Swagger  
+
+* Swagger UI enabled in development
+* JWT authentication integrated into Swagger
 
 ---
 
 ## 🛠️ Backend Setup (ASP.NET Core API)
 
 ### **1️⃣ Requirements**
-- .NET 8 SDK  
-- SQL Server / LocalDB  
-- Visual Studio / VS Code  
+
+* .NET 8 SDK
+* SQL Server / LocalDB
+* Visual Studio or VS Code
 
 ---
 
 ### **2️⃣ Configure the Database**
 
-Update the connection string inside `appsettings.json` if needed:
+Update the connection string in `appsettings.json` if needed:
 
 ```json
 "ConnectionStrings": {
   "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=QuizAppApi;Trusted_Connection=True;"
 }
-````
+```
 
 ---
 
 ### **3️⃣ Apply Entity Framework Migrations**
 
-Inside the backend project directory:
+From the backend project directory:
 
 ```bash
 dotnet ef migrations add InitialCreate
@@ -71,14 +81,17 @@ dotnet ef database update
 dotnet run
 ```
 
-API will run on:
+The API will start on:
 
 ```
+https://localhost:7000
+```
+
 ---
 
-## 🎨 Frontend Setup (React App)
+## 🎨 Frontend Setup (React)
 
-### **1️⃣ Navigate to frontend**
+### **1️⃣ Navigate to the frontend directory**
 
 ```bash
 cd quiz-client
@@ -96,7 +109,7 @@ npm install
 npm start
 ```
 
-React runs on:
+React will run at:
 
 ```
 http://localhost:3000
@@ -106,7 +119,7 @@ http://localhost:3000
 
 ## 🔄 Connecting Frontend & Backend
 
-Ensure correct CORS configuration in `Program.cs`:
+Ensure that CORS is configured correctly inside `Program.cs`:
 
 ```csharp
 policy.WithOrigins("http://localhost:3000")
@@ -115,7 +128,7 @@ policy.WithOrigins("http://localhost:3000")
       .AllowCredentials();
 ```
 
-The frontend will call the API using:
+The frontend communicates with the backend using:
 
 ```
 https://localhost:7000/api/...
@@ -123,52 +136,51 @@ https://localhost:7000/api/...
 
 ---
 
-## 🧪 Testing the Complete Application
+## 🧪 Testing the Application
 
-### ✔️ **1. Register**
+### ✔️ 1. Register
 
 `POST /api/account/register`
+Creates a user with an email verification flag.
 
-Creates a user (email verification flag included).
+### ✔️ 2. Login
 
-### ✔️ **2. Login**
+Returns:
 
-Receive:
+* JWT token
+* Username
+* User ID
 
-* JWT Token
-* username
-* userId
+The frontend stores the token in `localStorage`.
 
-Frontend saves token in `localStorage`.
+### ✔️ 3. Create a Quiz
 
-### ✔️ **3. Create a Quiz**
-
-Go to:
+Navigate to:
 
 ```
 /create
 ```
 
-### ✔️ **4. Edit Quizzes**
+### ✔️ 4. Edit Quizzes
 
-Go to:
+Navigate to:
 
 ```
 /select
 ```
 
-Then:
+Then choose:
 
 ```
 /edit/{id}
 ```
 
-> Editing is disabled if the quiz already has attempts.
+> Editing is disabled once a quiz has recorded attempts.
 
-### ✔️ **5. Play a Quiz**
+### ✔️ 5. Play a Quiz
 
-* Authenticated users → Result saved
-* Guests → Result not saved
+* **Authenticated users:** results are saved
+* **Guests:** results are not stored
 
 ---
 
@@ -184,6 +196,8 @@ QuizApp – React & ASP.NET Core full-stack project.
 
 ---
 
+## 📸 Screenshots
+
 ![Welcome Screen](./Images/WelcomePage.png)
 ![Login Screen](./Images/Login.png)
 ![Select Screen](./Images/SelectQuiz.png)
@@ -192,3 +206,4 @@ QuizApp – React & ASP.NET Core full-stack project.
 ![Play Screen](./Images/PlayQuiz.png)
 ![Result Screen](./Images/Score.png)
 
+---
