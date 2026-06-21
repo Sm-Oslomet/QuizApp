@@ -17,21 +17,7 @@ function QuizPlay() {
     useEffect(() => {
         async function loadQuiz() {
             try {
-                const data = await quizService.getById(id);
-
-                // Normalize backend data to match frontend format
-                const formatted = {
-                    id: data.id,
-                    title: data.title,
-                    description: data.description,
-                    questions: data.questions.map((q) => ({
-                        id: q.id,
-                        text: q.questionText,
-                        correctAnswer: q.answers.find((a) => a.isCorrect)?.answerText,
-                        options: q.answers.map((a) => a.answerText),
-                    })),
-                };
-
+                const formatted = await quizService.getById(id);
                 setQuiz(formatted);
             } catch (err) {
                 alert("Quiz not found!");
@@ -40,9 +26,9 @@ function QuizPlay() {
                 setLoading(false);
             }
         }
-
         loadQuiz();
     }, [id, navigate]);
+
 
     if (loading) {
         return <p className="text-center mt-5">Loading quiz...</p>;
@@ -55,24 +41,31 @@ function QuizPlay() {
     const question = quiz.questions[current];
     const livePercentage = Math.round((score / quiz.questions.length) * 100);
 
-    // ✅ Handle user selecting an answer
     const handleAnswer = (option) => {
-        if (selected) return; // prevent reselect
+        if (selected) return;
 
         setSelected(option);
+        // ✅ also record this choice inside quiz.questions
+        setQuiz((prev) => {
+            const updated = [...prev.questions];
+            updated[current].selectedOption = option;
+            return { ...prev, questions: updated };
+        });
 
-        if (option === question.correctAnswer) {
+        if (option === question.answers.find((a) => a.isCorrect)?.text) {
             setScore((prev) => prev + 1);
             setFeedbackText("✅ Correct!");
             setWasCorrect(true);
         } else {
-            setFeedbackText(`❌ Wrong! Correct answer: ${question.correctAnswer}`);
+            setFeedbackText(
+                `❌ Wrong! Correct answer: ${question.answers.find((a) => a.isCorrect)?.text
+                }`
+            );
             setWasCorrect(false);
         }
     };
 
-    // ✅ Move to next question or finish
-    const handleNext = () => {
+    const handleNext = async () => {
         const lastIndex = quiz.questions.length - 1;
 
         if (current < lastIndex) {
@@ -81,15 +74,33 @@ function QuizPlay() {
             setFeedbackText("");
             setWasCorrect(null);
         } else {
-            navigate(`/result/${quiz.id}`, {
-                state: {
-                    title: quiz.title,
-                    totalQuestions: quiz.questions.length,
-                    score: score,
-                },
-            });
+            try {
+                // ✅ Collect correct answer IDs
+                const userAnswers = quiz.questions.map((q) => {
+                    const selectedAnswer = q.answers.find(
+                        (a) => a.text === q.selectedOption // store selected option per question
+                    );
+                    return {
+                        questionId: q.id,
+                        answerId: selectedAnswer ? selectedAnswer.id : null,
+                    };
+                });
+
+                const result = await quizService.submit(quiz.id, userAnswers);
+
+                navigate(`/result/${quiz.id}`, {
+                    state: {
+                        title: quiz.title,
+                        totalQuestions: result.totalQuestions,
+                        score: result.score,
+                    },
+                });
+            } catch (err) {
+                alert("Failed to submit quiz result: " + err.message);
+            }
         }
     };
+
 
     return (
         <div className="container py-5">
@@ -110,13 +121,13 @@ function QuizPlay() {
                 <p className="fw-bold">{question.text}</p>
 
                 <div className="list-group">
-                    {question.options.map((option, i) => {
+                    {question.answers.map((a, i) => {
                         let buttonClass = "list-group-item list-group-item-action";
 
                         if (selected) {
-                            if (option === question.correctAnswer) {
+                            if (a.text === question.answers.find(ans => ans.isCorrect)?.text) {
                                 buttonClass += " list-group-item-success";
-                            } else if (option === selected) {
+                            } else if (a.text === selected) {
                                 buttonClass += " list-group-item-danger";
                             } else {
                                 buttonClass += " disabled opacity-50";
@@ -125,15 +136,16 @@ function QuizPlay() {
 
                         return (
                             <button
-                                key={i}
+                                key={a.id}
                                 className={buttonClass}
-                                onClick={() => handleAnswer(option)}
+                                onClick={() => handleAnswer(a.text)}
                                 disabled={!!selected}
                             >
-                                {option}
+                                {a.text}
                             </button>
                         );
                     })}
+
                 </div>
 
                 {/* Feedback text after answering */}

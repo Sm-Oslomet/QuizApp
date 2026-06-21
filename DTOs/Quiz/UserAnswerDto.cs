@@ -1,4 +1,4 @@
-﻿namespace QuizApp.DTOs.Quiz
+﻿﻿namespace QuizApp.DTOs.Quiz
 {
 
     public class UserAnswerDto

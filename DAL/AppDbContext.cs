@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http.Features;
+using Microsoft.EntityFrameworkCore;
 using QuizApp.Models;
 using System.Collections.Generic;
 using System.Reflection.Emit;
@@ -7,75 +8,71 @@ namespace QuizApp.DAL
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options)
-            : base(options)
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
+            
         }
-        public DbSet<User> Users { get; set; }
-        public DbSet<Quiz> Quizzes { get; set; }
-        public DbSet<Question> Questions { get; set; }
-        public DbSet<Answer> Answers { get; set; }
-        public DbSet<QuizAttempt> QuizAttempts { get; set; }
-        public DbSet<UserAnswer> UserAnswers { get; set; }
+       public DbSet<User> Users { get; set; } 
+       public DbSet<Quiz> Quizzes { get; set; }
+       public DbSet<Question> Questions{ get; set; }
+       public DbSet<Answer> Answers { get; set; }
+
+       public DbSet<QuizAttempt> QuizAttempts { get; set; }
+       public DbSet<UserAnswer> UserAnswers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // USER → QUIZ (delete user deletes quizzes)
-            modelBuilder.Entity<Quiz>()
-                .HasOne(q => q.User)
-                .WithMany(u => u.Quizzes)
-                .HasForeignKey(q => q.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Quiz>() // Start configuring Quiz table
+                .HasOne(q => q.User) // connects to the User Table trhough a one to one connection
+                .WithMany(u => u.Quizzes) // connects User to Quizzes through a one to many connection
+                .HasForeignKey(q => q.UserId) // We specify what the foreign key is
+                .OnDelete(DeleteBehavior.Cascade); //Delete cascade makes usre that if an entity is delete, so are it's child entities
 
-            // QUIZ → QUESTION (delete quiz deletes questions)
-            modelBuilder.Entity<Question>()
+            modelBuilder.Entity<Question>() // we repeat previous model on each of the tables, determining relations
                 .HasOne(q => q.Quiz)
                 .WithMany(qz => qz.Questions)
                 .HasForeignKey(q => q.QuizId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // QUESTION → ANSWER (delete question deletes answers)
             modelBuilder.Entity<Answer>()
                 .HasOne(a => a.Question)
                 .WithMany(q => q.Answers)
                 .HasForeignKey(a => a.QuestionId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // QUIZ ATTEMPT → USER / QUIZ (no cascade to avoid circular path)
-            modelBuilder.Entity<QuizAttempt>()
+            modelBuilder.Entity<QuizAttempt>() // QuizAttempt table joins two tables, User and Quiz, so we have two models for it. 
                 .HasOne(qa => qa.User)
                 .WithMany(u => u.QuizAttempts)
                 .HasForeignKey(qa => qa.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict); // set to restrict, had it as cascade, but this caused the database to go in circles during testing
 
             modelBuilder.Entity<QuizAttempt>()
                 .HasOne(qa => qa.Quiz)
-                .WithMany(q => q.QuizAttempts)
+                .WithMany(qz => qz.QuizAttempts)
                 .HasForeignKey(qa => qa.QuizId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // USER ANSWER relationships (no cascade — this breaks the multiple paths)
-            modelBuilder.Entity<UserAnswer>()
+
+            modelBuilder.Entity<UserAnswer>() // UserAnswer similarly is a join table, it joins three tables however, which is why we have three models. 
                 .HasOne(ua => ua.QuizAttempt)
                 .WithMany(qa => qa.UserAnswers)
                 .HasForeignKey(ua => ua.QuizAttemptId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<UserAnswer>()
                 .HasOne(ua => ua.Question)
-                .WithMany(q => q.UserAnswers)
+                .WithMany()
                 .HasForeignKey(ua => ua.QuestionId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict); // Restrict makes it so the Question is not deleted if the UserAnswer is deleted
 
             modelBuilder.Entity<UserAnswer>()
                 .HasOne(ua => ua.Answer)
-                .WithMany(a => a.UserAnswers)
+                .WithMany()
                 .HasForeignKey(ua => ua.AnswerId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict); // makes sure an Answer is not deleted if a Useranswer is.
         }
-
     }
 }
 

@@ -87,7 +87,7 @@ namespace QuizApp.Migrations
                         column: x => x.QuizId,
                         principalTable: "Quizzes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_QuizAttempts_Users_UserId",
                         column: x => x.UserId,
@@ -125,7 +125,9 @@ namespace QuizApp.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     QuizAttemptId = table.Column<int>(type: "int", nullable: false),
                     QuestionId = table.Column<int>(type: "int", nullable: false),
-                    AnswerId = table.Column<int>(type: "int", nullable: false)
+                    AnswerId = table.Column<int>(type: "int", nullable: false),
+                    AnswerId1 = table.Column<int>(type: "int", nullable: true),
+                    QuestionId1 = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -137,17 +139,27 @@ namespace QuizApp.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
+                        name: "FK_UserAnswers_Answers_AnswerId1",
+                        column: x => x.AnswerId1,
+                        principalTable: "Answers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_UserAnswers_Questions_QuestionId",
                         column: x => x.QuestionId,
                         principalTable: "Questions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
+                        name: "FK_UserAnswers_Questions_QuestionId1",
+                        column: x => x.QuestionId1,
+                        principalTable: "Questions",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_UserAnswers_QuizAttempts_QuizAttemptId",
                         column: x => x.QuizAttemptId,
                         principalTable: "QuizAttempts",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -181,9 +193,19 @@ namespace QuizApp.Migrations
                 column: "AnswerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserAnswers_AnswerId1",
+                table: "UserAnswers",
+                column: "AnswerId1");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserAnswers_QuestionId",
                 table: "UserAnswers",
                 column: "QuestionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserAnswers_QuestionId1",
+                table: "UserAnswers",
+                column: "QuestionId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserAnswers_QuizAttemptId",

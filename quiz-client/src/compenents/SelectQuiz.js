@@ -33,8 +33,8 @@ function SelectQuiz() {
     if (!window.confirm("Delete this quiz?")) return;
 
     try {
-      await QuizHandler.delete(id);
-      setQuizzes((prev) => prev.filter((q) => q.id !== id));
+        await QuizHandler.delete(id);
+        setQuizzes((prev) => prev.filter((q) => q.quizId !== id));
     } catch (err) {
       console.error("Failed to delete quiz:", err);
       alert("Failed to delete quiz.");
@@ -98,21 +98,21 @@ function SelectQuiz() {
                     <div className="mt-auto d-flex justify-content-between">
                       <button
                         className="btn btn-primary btn-sm"
-                        onClick={() => navigate(`/play/${quiz.id}`)}
+                            onClick={() => navigate(`/play/${quiz.quizId}`)}
                       >
                         Play
                       </button>
 
                       <button
                         className="btn btn-warning btn-sm text-white"
-                        onClick={() => navigate(`/edit/${quiz.id}`)}
+                            onClick={() => navigate(`/edit/${quiz.quizId}`)}
                       >
                         Edit
                       </button>
 
                       <button
                         className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(quiz.id)}
+                            onClick={() => handleDelete(quiz.quizId)}
                       >
                         Delete
                       </button>

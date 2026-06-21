@@ -168,7 +168,13 @@ namespace QuizApp.Migrations
                     b.Property<int>("AnswerId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("AnswerId1")
+                        .HasColumnType("int");
+
                     b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("QuestionId1")
                         .HasColumnType("int");
 
                     b.Property<int>("QuizAttemptId")
@@ -178,7 +184,11 @@ namespace QuizApp.Migrations
 
                     b.HasIndex("AnswerId");
 
+                    b.HasIndex("AnswerId1");
+
                     b.HasIndex("QuestionId");
+
+                    b.HasIndex("QuestionId1");
 
                     b.HasIndex("QuizAttemptId");
 
@@ -223,7 +233,7 @@ namespace QuizApp.Migrations
                     b.HasOne("QuizApp.Models.Quiz", "Quiz")
                         .WithMany("QuizAttempts")
                         .HasForeignKey("QuizId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("QuizApp.Models.User", "User")
@@ -240,21 +250,29 @@ namespace QuizApp.Migrations
             modelBuilder.Entity("QuizApp.Models.UserAnswer", b =>
                 {
                     b.HasOne("QuizApp.Models.Answer", "Answer")
-                        .WithMany("UserAnswers")
+                        .WithMany()
                         .HasForeignKey("AnswerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("QuizApp.Models.Question", "Question")
+                    b.HasOne("QuizApp.Models.Answer", null)
                         .WithMany("UserAnswers")
+                        .HasForeignKey("AnswerId1");
+
+                    b.HasOne("QuizApp.Models.Question", "Question")
+                        .WithMany()
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("QuizApp.Models.Question", null)
+                        .WithMany("UserAnswers")
+                        .HasForeignKey("QuestionId1");
+
                     b.HasOne("QuizApp.Models.QuizAttempt", "QuizAttempt")
                         .WithMany("UserAnswers")
                         .HasForeignKey("QuizAttemptId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Answer");

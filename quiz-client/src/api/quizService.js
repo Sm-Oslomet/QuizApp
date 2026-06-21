@@ -1,4 +1,4 @@
-import { authService } from "./authService";
+﻿import { authService } from "./authService";
 
 const API_URL = `${process.env.REACT_APP_API_URL}/quiz`;
 
@@ -22,8 +22,28 @@ export const quizService = {
             },
         });
         if (!res.ok) throw new Error("Quiz not found");
-        return await res.json();
+        const data = await res.json();
+
+        // ✅ Keep full answer objects including their IDs
+        const formatted = {
+            id: data.quizId,
+            title: data.title,
+            description: data.description,
+            questions: data.questions.map((q) => ({
+                id: q.questionId,
+                text: q.questionText,
+                answers: q.answers.map((a) => ({
+                    id: a.answerId, // keep the actual DB ID
+                    text: a.answerText,
+                    isCorrect: a.isCorrect,
+                })),
+            })),
+        };
+
+        return formatted;
     },
+
+
 
     async create(quiz) {
         const payload = {
