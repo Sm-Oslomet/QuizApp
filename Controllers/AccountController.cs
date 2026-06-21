@@ -14,7 +14,7 @@ namespace QuizApp.Controllers
     [Route("api/[controller]")]
     public class AccountController : ControllerBase
     {
-        private readonly IUserRepository _userRepo; 
+        private readonly IUserRepository _userRepo;
         private readonly IConfiguration _configuration; // used to access jwt  
 
         public AccountController(IUserRepository userRepo, IConfiguration configuration) // dependency injection

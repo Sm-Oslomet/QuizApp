@@ -20,10 +20,10 @@ function EditQuiz() {
                     description: data.description,
                     questions: data.questions.map((q) => ({
                         id: q.id,
-                        text: q.questionText,
-                        options: q.answers.map((a) => a.answerText),
+                        text: q.text,
+                        options: q.answers.map((a) => a.text),
                         correctAnswer:
-                            q.answers.find((a) => a.isCorrect)?.answerText || "",
+                            q.answers.find((a) => a.isCorrect)?.text || "",
                     })),
                 };
 
@@ -123,8 +123,8 @@ function EditQuiz() {
             title: quiz.title.trim(),
             description: (quiz.description || "").trim(),
             questions: quiz.questions.map((q) => ({
-                text: q.text.trim(),
-                options: q.options.map((o) => o.trim()),
+                text: (q.text || "").trim(),
+                options: q.options.map((o) => (o || "").trim()),
                 correctAnswer: (q.correctAnswer || "").trim(),
             })),
         };
