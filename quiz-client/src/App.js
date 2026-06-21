@@ -11,12 +11,14 @@ import ResultPage from "./compenents/ResultPage";
 import Login from "./compenents/Login/Login";
 import Register from "./compenents/Login/Register";
 import RequireAuth from "./compenents/Login/RequireAuth";
+import { DarkModeProvider } from "./context/DarkModeContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 
 function App() {
     return (
+        <DarkModeProvider>
         <Router>
             <div className="d-flex flex-column min-vh-100">
                 <Navbar />
@@ -77,6 +79,7 @@ function App() {
                 <Footer />
             </div>
         </Router>
+        </DarkModeProvider>
     );
 }
 

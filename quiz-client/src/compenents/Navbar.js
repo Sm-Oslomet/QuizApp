@@ -1,10 +1,12 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { authService } from "../api/authService"; 
+import { authService } from "../api/authService";
+import { useDarkMode } from "../context/DarkModeContext";
 
 function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { darkMode, toggleDarkMode } = useDarkMode();
 
   const user = authService.getCurrentUser();
 
@@ -113,6 +115,16 @@ function Navbar() {
                 </li>
               </>
             )}
+
+            <li className="nav-item ms-2">
+              <button
+                className="btn btn-outline-light btn-sm"
+                onClick={toggleDarkMode}
+                title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {darkMode ? "☀️" : "🌙"}
+              </button>
+            </li>
           </ul>
         </div>
       </div>
